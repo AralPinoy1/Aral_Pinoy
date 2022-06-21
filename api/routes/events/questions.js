@@ -1,9 +1,24 @@
 'use strict'
 
 const express = require('express')
+const { Types } = require('mongoose')
 const Joi = require('joi')
 
 const EventQuestionController = require('../../controllers/events/questions')
+
+function validateIdParam(req, res, next) {
+  const { id } = req.params
+
+  if (!Types.ObjectId.isValid(id)) {
+    return res.status(400).json({
+      code: 'BadRequest',
+      status: 400,
+      message: 'ID is invalid'
+    })
+  }
+
+  next()
+}
 
 const createValidator = Joi.object({
   label: Joi.string().trim().min(1).max(500).required(),
@@ -91,9 +106,24 @@ async function list(req, res, next) {
   }
 }
 
+async function deleteEventQuestion(req, res, next) {
+  const { id } = req.params
+
+  try {
+    await EventQuestionController.deleteEventQuestion(id)
+
+    return res.status(200).json({
+      ok: true
+    })
+  } catch (error) {
+    next(error)
+  }
+}
+
 const router = express.Router()
 
 router.post('/', validateCreate, create)
 router.get('/', validateList, list)
+router.delete('/:id', validateIdParam, deleteEventQuestion)
 
 module.exports = router

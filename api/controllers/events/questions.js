@@ -2,6 +2,10 @@
 
 const EventQuestionModel = require('../../models/events/questions')
 
+const {
+  NotFoundError
+} = require('../../errors')
+
 const whitespaceRegex = /\s+/g
 
 const SORT_ORDER_MAPPING = {
@@ -67,6 +71,20 @@ class EventQuestionController {
 
     return {
       results: eventQuestions
+    }
+  }
+
+  /**
+   * @param {string} id Event question ID
+   * @returns {Promise<void>}
+   */
+  static async deleteEventQuestion(id) {
+    const { deletedCount } = await EventQuestionModel.deleteOne({
+      _id: id
+    })
+
+    if (deletedCount === 0) {
+      throw new NotFoundError('event-question')
     }
   }
 }
