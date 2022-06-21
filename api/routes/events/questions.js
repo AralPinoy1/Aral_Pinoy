@@ -7,7 +7,7 @@ const EventQuestionController = require('../../controllers/events/questions')
 
 const createValidator = Joi.object({
   label: Joi.string().trim().min(1).max(500).required(),
-  type: Joi.string().valid('matrix:satisfied', 'matrix:likely').required(),
+  type: Joi.string().valid('polar', 'matrix:satisfied', 'matrix:likely').required(),
 }).options({ 
   stripUnknown: true
 })
@@ -83,7 +83,9 @@ async function list(req, res, next) {
       }
     })
 
-    return res.json(results)
+    return res.json({
+      results
+    })
   } catch (error) {
     next(error)
   }
