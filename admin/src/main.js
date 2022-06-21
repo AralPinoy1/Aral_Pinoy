@@ -70,9 +70,14 @@ import ReportVolunteers from './pages/reports/ReportVolunteers'
 import VolunteerSuggestion from './pages/events/VolunteerSuggestion.vue'
 import Donate from './pages/AdminDonate.vue'
 
+// /demo
 import DemoCronJobs from './pages/demo/DemoCronJobs'
 
+// /forms
 import Forms from './pages/Forms'
+
+// /event-questions
+import EventQuestionList from './pages/events/questions/EventQuestionList'
 
 import { apiClient } from './axios'
 import vuexStore from './store'
@@ -380,6 +385,14 @@ const routes = [
   {
     path: '/forms',
     component: Forms,
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  {
+    path: '/event-questions',
+    component: EventQuestionList,
     meta: {
       requiresAuth: true
     }

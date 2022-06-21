@@ -160,6 +160,10 @@
               Edit Skills
             </b-dropdown-item>
 
+            <b-dropdown-item to="/event-questions">
+              Edit Questions
+            </b-dropdown-item>
+
             <b-dropdown-item @click="logout">
               Logout
             </b-dropdown-item>
