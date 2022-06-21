@@ -31,6 +31,7 @@ const eventExpensesRouter = require('./routes/events/expenses')
 const eventVolunteersRouter = require('./routes/events/volunteers')
 const eventTemplatesRouter = require('./routes/events/templates')
 const eventDocumentationsRouter = require('./routes/events/documentations')
+const eventQuestionsRouter = require('./routes/events/questions')
 
 const inkindDonationsRouter = require('./routes/inkind-donations')
 const ikdCategoriesRouter = require('./routes/inkind-donations/categories')
@@ -45,6 +46,8 @@ const notificationsRouter = require('./routes/notifications')
 const formTemplatesStaticRouter = require('./routes/form-templates/static')
 
 const seedSdgs = require('./db/seeders/sdg')
+const seedEventQuestions = require('./db/seeders/event-questions')
+
 const setupCronJobs = require('./cron-jobs/index')
 
 const logger = debug('api:server')
@@ -131,6 +134,7 @@ app.use('/event-expenses', eventExpensesRouter)
 app.use('/event-volunteers', eventVolunteersRouter)
 app.use('/event-templates', eventTemplatesRouter)
 app.use('/event-documentations', eventDocumentationsRouter)
+app.use('/event-questions', eventQuestionsRouter)
 
 app.use('/inkind-donations', inkindDonationsRouter)
 app.use('/inkind-donation-categories', ikdCategoriesRouter)
@@ -181,6 +185,7 @@ app.use(function (err, req, res, next) {
 async function onSetup() {
   await connectDatabase()
   await seedSdgs()
+  await seedEventQuestions()
   await setupCronJobs()
 
   app.emit('ready')
