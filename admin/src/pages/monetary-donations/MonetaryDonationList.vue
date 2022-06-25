@@ -136,7 +136,7 @@
                               <span v-if="value !== undefined && value !== ''">
                                 {{
                                   new Date(value).toLocaleString('en-us', {
-                                    dateStyle: 'short',
+                                    dateStyle: 'medium',
                                     timeStyle: 'short'
                                   })
                                 }}

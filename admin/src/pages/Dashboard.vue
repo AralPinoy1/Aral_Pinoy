@@ -42,7 +42,7 @@
                         <b-icon icon="calendar" />
                         {{
                           new Date(event.date.start).toLocaleString('en-us', {
-                            dateStyle: 'short',
+                            dateStyle: 'medium',
                             timeStyle: 'short'
                           })
                         }}
@@ -438,7 +438,7 @@
                               <span v-if="value !== undefined && value !== ''">
                                 {{
                                   new Date(value).toLocaleString('en-us', {
-                                    dateStyle: 'short',
+                                    dateStyle: 'medium',
                                     timeStyle: 'short'
                                   })
                                 }}

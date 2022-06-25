@@ -144,7 +144,7 @@
                     <b-icon icon="calendar" />
                     {{
                       new Date(event.date.start).toLocaleString('en-us', {
-                        dateStyle: 'short',
+                        dateStyle: 'medium',
                         timeStyle: 'short'
                       })
                     }}
@@ -155,7 +155,7 @@
                           timeStyle: 'short'
                         })
                         : new Date(event.date.end).toLocaleString('en-us', {
-                          dateStyle: 'short',
+                          dateStyle: 'medium',
                           timeStyle: 'short'
                         })
                     }}
