@@ -12,6 +12,11 @@ const GoogleCalendarController = require('../google/calendar')
 
 const { ConflictError, NotFoundError } = require('../../errors')
 
+const SORT_ORDER_MAPPING = {
+  asc : 1,
+  desc: -1
+}
+
 class EventVolunteerController {
   static async create(userId, eventId, volunteerJob) {
     try {
@@ -104,15 +109,16 @@ class EventVolunteerController {
       filters: {
         userId,
         eventId,
+      },
+      sort: {
+        field: sortField,
+        order: sortOrder
       }
     } = options
 
+    const aggregationQuery = []
+
     const matchQuery = {}
-    const queryOptions = { 
-      lean: true,
-      limit,
-      skip: offset
-    }
 
     if (userId !== undefined) {
       matchQuery.user = new Types.ObjectId(userId)
@@ -122,44 +128,71 @@ class EventVolunteerController {
       matchQuery.event = new Types.ObjectId(eventId)
     }
 
+    aggregationQuery.push({
+      $match: matchQuery
+    })
+
     if (expand === true) {
-      queryOptions.populate = [
-        {
-          path: 'user'
-        }, 
-        {
-          path: 'event',
-        }]
+      aggregationQuery.push({
+        $lookup: {
+          from: 'events',
+          localField: 'event',
+          foreignField: '_id',
+          as: 'event'
+        }
+      },
+      {
+        $lookup: {
+          from: 'users',
+          localField: 'user',
+          foreignField: '_id',
+          as: 'user'
+        }
+      },
+      {
+        $unwind: '$event'
+      },
+      {
+        $unwind: '$user'
+      })
     }
 
-    const [eventVolunteers, eventVolunteersTotal] = await Promise.all([
-      EventVolunteerModel.find(matchQuery, undefined, queryOptions),
-      EventVolunteerModel.countDocuments(matchQuery)
+    if (sortField !== undefined && sortOrder !== undefined) {
+      aggregationQuery.push({
+        $sort: {
+          [sortField]: SORT_ORDER_MAPPING[sortOrder]
+        }
+      }) 
+    }
+
+    if (offset !== undefined) {
+      aggregationQuery.push({
+        $skip: offset
+      }) 
+    }
+
+    if (limit !== undefined) {
+      aggregationQuery.push({
+        $limit: limit
+      }) 
+    }
+
+    const [eventVolunteers, countResults] = await Promise.all([
+      EventVolunteerModel.aggregate(aggregationQuery),
+      EventVolunteerModel.aggregate([
+        {
+          $match: matchQuery
+        },
+        {
+          $count: 'count'
+        }
+      ])
     ])
 
     return {
       results: eventVolunteers,
-      total: eventVolunteersTotal
+      total: countResults.length > 0 ? countResults[0].count : 0
     }
-
-    // const results = []
-    // let total = eventVolunteersTotal
-
-    // for (const eventVolunteer of eventVolunteers) {
-    //   console.log(eventVolunteer._id)
-    //   if (eventVolunteer.event === null) {
-    //     total -= 1
-
-    //     continue
-    //   }
-
-    //   results.push(eventVolunteer)
-    // }
-
-    // return {
-    //   results,
-    //   total
-    // }
   }
 
   static async delete(id, options = {}) {

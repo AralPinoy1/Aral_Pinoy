@@ -23,6 +23,8 @@ const listEventVolunteersValidator = Joi.object({
   expand: Joi.boolean().default(false),
   'filters.userId': Joi.objectId(),
   'filters.eventId': Joi.objectId(),
+  'sort.field': Joi.string().valid('event.date.start'),
+  'sort.order': Joi.string().valid('asc', 'desc')
 }).options({ 
   stripUnknown: true
 })
@@ -89,6 +91,8 @@ async function list(req, res, next) {
     'filters.eventStatuses': filterEventStatuses,
     'filters.userId': filterUserId,
     'filters.eventId': filterEventId,
+    'sort.field': sortField,
+    'sort.order': sortOrder
   } = req.query
 
   try {
@@ -105,7 +109,11 @@ async function list(req, res, next) {
       offset,
       limit,
       expand,
-      filters
+      filters,
+      sort: {
+        field: sortField,
+        order: sortOrder
+      }
     })
 
     return res.json({

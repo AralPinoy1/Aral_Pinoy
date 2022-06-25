@@ -46,7 +46,7 @@ const listValidator = Joi.object({
   'filters.status': Joi.string().valid('success', 'failed'),
   'filters.userId': Joi.objectId(),
   'filters.eventId': Joi.objectId(),
-  'sort.field': Joi.string().valid('updatedAt', 'createdAt'),
+  'sort.field': Joi.string().valid('updatedAt', 'createdAt', 'amount'),
   'sort.order': Joi.string().valid('asc', 'desc')
 }).options({ 
   stripUnknown: true

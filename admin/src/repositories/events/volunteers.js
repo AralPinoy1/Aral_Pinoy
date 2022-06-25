@@ -25,7 +25,8 @@ class EventVolunteerRepository {
     const {
       limit,
       offset,
-      expand
+      expand,
+      sort = {}
     } = options
 
     const queryString = new URLSearchParams()
@@ -54,6 +55,11 @@ class EventVolunteerRepository {
 
     if (filters.eventId !== undefined) {
       queryString.set('filters.eventId', filters.eventId)
+    }
+
+    if (sort.field !== undefined && sort.order !== undefined) {
+      queryString.set('sort.field', sort.field)
+      queryString.set('sort.order', sort.order)
     }
 
     const { data } = await this.apiClient.get(`/event-volunteers?${queryString.toString()}`)

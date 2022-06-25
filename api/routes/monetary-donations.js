@@ -49,7 +49,7 @@ const listValidator = Joi.object({
     )
   ],
   'filters.userId': Joi.objectId(),
-  'sort.field': Joi.string().valid('updatedAt', 'createdAt'),
+  'sort.field': Joi.string().valid('updatedAt', 'createdAt', 'amount'),
   'sort.order': Joi.string().valid('asc', 'desc')
 }).options({ 
   stripUnknown: true

@@ -201,31 +201,50 @@
                 </b-col>
               </b-row>
 
-              <b-row class="pb-4">
-                <b-col cols="4">
-                  <b-form-group
-                    style="font-size: 15px; font-family:'Bebas Neue', cursive;"
-                    label="Per page"
-                    label-for="per-page-select"
-                    label-cols-sm="6"
-                    label-cols-md="4"
-                    label-cols-lg="3"
-                    label-align-sm="right"
-                    label-size="sm"
-                    class="mb-0"
-                  >
-                    <b-form-select
-                      v-model="eventVolunteers.pagination.perPage"
-                      :options="pageOptions"
-                      style="width: 25%"
-                    />
-                  </b-form-group>
+              <b-row class="my-2">
+                <b-col cols="12">
+                  <b-container>
+                    <b-row
+                      class="mb-4"
+                      align-v="center"
+                      align-h="start"
+                    >
+                      <b-col cols="4">
+                        <b-row align-v="center">
+                          <b-col cols="3">
+                            <label
+                              for="per-page-select"
+                              style="font-size: 15px; font-family:'Bebas Neue', cursive;"
+                            >
+                              Per Page&nbsp;&nbsp;
+                            </label>
+                          </b-col>
+
+                          <b-col>
+                            <select
+                              v-model="eventVolunteers.pagination.perPage"
+                              class="form-select form-select-sm"
+                              aria-label="Default select example"
+                            >
+                              <option
+                                v-for="option in pageOptions"
+                                :key="option"
+                              >
+                                {{ option }}
+                              </option>
+                            </select>
+                          </b-col>
+                        </b-row>
+                      </b-col>
+                    </b-row>
+                  </b-container>
                 </b-col>
               </b-row>
 
               <b-row>
                 <b-col cols="12">
                   <b-table
+                    ref="eventVolunteersTable"
                     :items="getEventVolunteers"
                     :fields="eventVolunteers.fields"
                     :current-page="eventVolunteers.pagination.currentPage"
@@ -307,25 +326,43 @@
                 </b-col>
               </b-row>
 
-              <b-row class="pb-4">
-                <b-col cols="4">
-                  <b-form-group
-                    style="font-size: 15px; font-family:'Bebas Neue', cursive;"
-                    label="Per page"
-                    label-for="per-page-select"
-                    label-cols-sm="6"
-                    label-cols-md="4"
-                    label-cols-lg="3"
-                    label-align-sm="right"
-                    label-size="sm"
-                    class="mb-0"
-                  >
-                    <b-form-select
-                      v-model="eventDonations.pagination.perPage"
-                      :options="pageOptions"
-                      style="width: 25%"
-                    />
-                  </b-form-group>
+              <b-row class="my-2">
+                <b-col cols="12">
+                  <b-container>
+                    <b-row
+                      class="mb-4"
+                      align-v="center"
+                      align-h="start"
+                    >
+                      <b-col cols="4">
+                        <b-row align-v="center">
+                          <b-col cols="3">
+                            <label
+                              for="per-page-select"
+                              style="font-size: 15px; font-family:'Bebas Neue', cursive;"
+                            >
+                              Per Page&nbsp;&nbsp;
+                            </label>
+                          </b-col>
+
+                          <b-col>
+                            <select
+                              v-model="eventDonations.pagination.perPage"
+                              class="form-select form-select-sm"
+                              aria-label="Default select example"
+                            >
+                              <option
+                                v-for="option in pageOptions"
+                                :key="option"
+                              >
+                                {{ option }}
+                              </option>
+                            </select>
+                          </b-col>
+                        </b-row>
+                      </b-col>
+                    </b-row>
+                  </b-container>
                 </b-col>
               </b-row>
 
@@ -412,25 +449,43 @@
                 </b-col>
               </b-row>
 
-              <b-row class="pb-4">
-                <b-col cols="4">
-                  <b-form-group
-                    style="font-size: 15px; font-family:'Bebas Neue', cursive;"
-                    label="Per page"
-                    label-for="per-page-select"
-                    label-cols-sm="6"
-                    label-cols-md="4"
-                    label-cols-lg="3"
-                    label-align-sm="right"
-                    label-size="sm"
-                    class="mb-0"
-                  >
-                    <b-form-select
-                      v-model="monetaryDonations.pagination.perPage"
-                      :options="pageOptions"
-                      style="width: 25%"
-                    />
-                  </b-form-group>
+              <b-row class="my-2">
+                <b-col cols="12">
+                  <b-container>
+                    <b-row
+                      class="mb-4"
+                      align-v="center"
+                      align-h="start"
+                    >
+                      <b-col cols="4">
+                        <b-row align-v="center">
+                          <b-col cols="3">
+                            <label
+                              for="per-page-select"
+                              style="font-size: 15px; font-family:'Bebas Neue', cursive;"
+                            >
+                              Per Page&nbsp;&nbsp;
+                            </label>
+                          </b-col>
+
+                          <b-col>
+                            <select
+                              v-model="monetaryDonations.pagination.perPage"
+                              class="form-select form-select-sm"
+                              aria-label="Default select example"
+                            >
+                              <option
+                                v-for="option in pageOptions"
+                                :key="option"
+                              >
+                                {{ option }}
+                              </option>
+                            </select>
+                          </b-col>
+                        </b-row>
+                      </b-col>
+                    </b-row>
+                  </b-container>
                 </b-col>
               </b-row>
 
@@ -524,6 +579,20 @@ const eventDonationRepository = new EventDonationRepository(apiClient)
 const eventVolunteerRepository = new EventVolunteerRepository(apiClient)
 const monetaryDonationRepository = new MonetaryDonationRepository(apiClient)
 
+const EVENTS_VOLUNTEERED_SORT_MAPPING = {
+  startDate: 'event.date.start'
+}
+
+const EVENT_DONATIONS_SORT_MAPPING = {
+  createdAt: 'createdAt',
+  amount: 'amount'
+}
+
+const MONETARY_DONATIONS_SORT_MAPPING = {
+  createdAt: 'createdAt',
+  amount: 'amount'
+}
+
 export default {
   name: 'VolunteerProfile',
   data () {
@@ -541,7 +610,7 @@ export default {
         },
         fields: [
           { key: 'event', label: 'Event' },
-          { key: 'startDate', label: 'Date & Time' },
+          { key: 'startDate', label: 'Date & Time', sortable: true },
           { key: 'event.location.name', label: 'Venue' },
           { key: 'status', label: 'Status' },
           { key: 'absent', label: 'Is Absent' },
@@ -557,8 +626,8 @@ export default {
         },
         fields: [
           { key: '_id', label: 'Reference Number' },
-          { key: 'createdAt', label: 'Transaction Date & Time' },
-          { key: 'amount', label: 'Amount' },
+          { key: 'createdAt', label: 'Transaction Date & Time', sortable: true },
+          { key: 'amount', label: 'Amount', sortable: true },
           { key: 'event', label: 'Event' },
           { key: 'status', label: 'Status' }
         ]
@@ -572,9 +641,9 @@ export default {
         },
         fields: [
           { key: '_id', label: 'Reference Number' },
-          { key: 'createdAt', label: 'Transaction Date & Time' },
+          { key: 'createdAt', label: 'Transaction Date & Time', sortable: true },
           { key: 'contact', label: 'Contact Details' },
-          { key: 'amount', label: 'Amount' },
+          { key: 'amount', label: 'Amount', sortable: true },
           { key: 'status', label: 'Status' }
         ]
       }
@@ -632,10 +701,24 @@ export default {
       }
     },
     async getEventVolunteers (ctx) {
+      const {
+        sortBy,
+        sortDesc
+      } = ctx
+
       const userId = this.user._id
 
       const perPage = this.eventVolunteers.pagination.perPage
       const pageOffset = this.eventVolunteersPageOffset
+      const sort = {
+        field: undefined,
+        order: undefined
+      }
+
+      if (sortBy !== undefined && sortBy !== '') {
+        sort.field = EVENTS_VOLUNTEERED_SORT_MAPPING[sortBy]
+        sort.order = sortDesc ? 'desc' : 'asc'
+      }
 
       const { results, total } = await eventVolunteerRepository.list({
         userId,
@@ -643,7 +726,8 @@ export default {
       }, {
         limit: perPage,
         offset: pageOffset,
-        expand: true
+        expand: true,
+        sort
       })
 
       this.eventVolunteers.total = total
@@ -651,10 +735,24 @@ export default {
       return results
     },
     async getEventDonations (ctx) {
+      const {
+        sortBy,
+        sortDesc
+      } = ctx
+
       const userId = this.user._id
 
       const perPage = this.eventDonations.pagination.perPage
       const pageOffset = this.eventDonationsPageOffset
+      const sort = {
+        field: 'createdAt',
+        order: 'desc'
+      }
+
+      if (sortBy !== undefined && sortBy !== '') {
+        sort.field = EVENT_DONATIONS_SORT_MAPPING[sortBy]
+        sort.order = sortDesc ? 'desc' : 'asc'
+      }
 
       const { results, total } = await eventDonationRepository.list({
         userId
@@ -662,10 +760,7 @@ export default {
         limit: perPage,
         offset: pageOffset,
         expand: true,
-        sort: {
-          field: 'updatedAt',
-          order: 'desc'
-        }
+        sort
       })
 
       this.eventDonations.total = total
@@ -673,10 +768,24 @@ export default {
       return results
     },
     async getMonetaryDonations (ctx) {
+      const {
+        sortBy,
+        sortDesc
+      } = ctx
+
       const userId = this.user._id
 
       const perPage = this.eventDonations.pagination.perPage
       const pageOffset = this.eventDonationsPageOffset
+      const sort = {
+        field: 'createdAt',
+        order: 'desc'
+      }
+
+      if (sortBy !== undefined && sortBy !== '') {
+        sort.field = MONETARY_DONATIONS_SORT_MAPPING[sortBy]
+        sort.order = sortDesc ? 'desc' : 'asc'
+      }
 
       const { results, total } = await monetaryDonationRepository.list({
         userId
@@ -684,10 +793,7 @@ export default {
         limit: perPage,
         offset: pageOffset,
         expand: true,
-        sort: {
-          field: 'updatedAt',
-          order: 'desc'
-        }
+        sort
       })
 
       this.monetaryDonations.total = total
