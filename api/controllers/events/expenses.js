@@ -28,7 +28,10 @@ class EventExpenseController {
       filters: {
         eventId
       },
-      sort
+      sort: {
+        field: sortField,
+        order: sortOrder
+      }
     } = options
 
     const matchQuery = {}
@@ -44,11 +47,9 @@ class EventExpenseController {
       matchQuery.event = new Types.ObjectId(eventId)
     }
 
-    if (sort !== undefined) {
-      const { field, order } = sort
-
+    if (sortField !== undefined && sortOrder !== undefined) {
       queryOptions.sort = {
-        [field]: SORT_ORDER_MAPPING[order]
+        [sortField]: SORT_ORDER_MAPPING[sortOrder]
       }
     }
 

@@ -1261,12 +1261,6 @@ import EventVolunteerRepository from '../../repositories/events/volunteers'
 import EventExpenseRepository from '../../repositories/events/expenses'
 import EventDocumentationRepository from '../../repositories/events/documentations'
 
-const logo = require('../../assets/aralpinoywords.png')
-
-const eventVolunteerRepository = new EventVolunteerRepository(apiClient)
-const eventExpenseRepository = new EventExpenseRepository(apiClient)
-const eventDocumentationRepository = new EventDocumentationRepository(apiClient)
-
 extend('required', {
   ...required,
   message: 'This field is required'
@@ -1275,6 +1269,16 @@ extend('max', {
   ...max,
   message: 'This field must be less than or equal to {length} characters'
 })
+
+const logo = require('../../assets/aralpinoywords.png')
+
+const eventVolunteerRepository = new EventVolunteerRepository(apiClient)
+const eventExpenseRepository = new EventExpenseRepository(apiClient)
+const eventDocumentationRepository = new EventDocumentationRepository(apiClient)
+
+const EVENT_EXPENSES_SORT_MAPPING = {
+  amount: 'amount'
+}
 
 export default {
   name: 'EventDetails',
@@ -1328,7 +1332,7 @@ export default {
           currentPage: 1
         },
         fields: [
-          { key: 'amount', label: 'Amount' },
+          { key: 'amount', label: 'Amount', sortable: true },
           { key: 'type', label: 'Type of expense' },
           { key: 'remarks', label: 'Remarks' }
         ]
@@ -1661,15 +1665,27 @@ export default {
       return results
     },
     async getEventExpenses (ctx) {
+      const {
+        sortBy,
+        sortDesc
+      } = ctx
+
       const perPage = this.eventExpenses.pagination.perPage
       const pageOffset = this.eventExpensesPageOffset
+      const sort = {}
+
+      if (sortBy !== undefined && sortBy !== '') {
+        sort.field = EVENT_EXPENSES_SORT_MAPPING[sortBy]
+        sort.order = sortDesc ? 'desc' : 'asc'
+      }
 
       const { results, total } = await eventExpenseRepository.list({
         eventId: this.eventId
       }, {
         limit: perPage,
         offset: pageOffset,
-        expand: true
+        expand: true,
+        sort
       })
 
       this.eventExpenses.total = total
