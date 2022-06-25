@@ -18,13 +18,13 @@
       >
         <div class="d-flex justify-content-between">
           <h5 class="mb-1">
-            Items in your inventory will expire in one month!
+            Items in your inventory are almost expiring!
           </h5>
           <small>{{ notificationDate }}</small>
         </div>
 
         <small class="mb-1">
-          <strong>{{ getItemNames() }}</strong> will be expiring on
+          <strong>{{ getItemNames() }}</strong> will be expiring on or before
           <strong>{{ new Date(details.dateThreshold).toLocaleString('en-us', { month: 'short', year: 'numeric' }) }}</strong>.
         </small>
       </div>
