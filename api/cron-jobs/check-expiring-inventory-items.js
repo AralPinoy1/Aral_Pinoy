@@ -49,6 +49,38 @@ async function getExpiringItems(dateThreshold) {
   return expiringItems
 }
 
+async function getUnmentionedExpiringItems(expiringItems) {
+  const expiringItemIds = []
+  const expiringItemsMap = new Map()
+
+  for (const item of expiringItems) {
+    expiringItemIds.push(item._id)
+    expiringItemsMap.set(item._id.toString(), item)
+  }
+
+  const notifications = await NotificationModel.find({
+    'typeDetails.expiringItems._id': {
+      $in: expiringItemIds
+    },
+  }, ['typeDetails'])
+
+  if (notifications.length === 0) {
+    return Array.from(expiringItemsMap.values())
+  }
+
+  for (const notification of notifications) {
+    const items = notification.typeDetails.expiringItems
+
+    for (const item of items) {
+      if (expiringItemsMap.has(item._id.toString())) {
+        expiringItemsMap.delete(item._id.toString())
+      }
+    }
+  }
+
+  return Array.from(expiringItemsMap.values())
+}
+
 async function run() {
   logger('Running cron task')
 
@@ -72,32 +104,32 @@ async function run() {
     return
   }
 
+  logger('Searching for un-notified expiring items')
+  
+  const unmentionedExpiringItems = await getUnmentionedExpiringItems(expiringItems)
+
+  if (unmentionedExpiringItems.length === 0) {
+    logger('No un-notified expiring items found')
+
+    return
+  }
+
   for (const user of users) {
     const userId = user._id
 
-    const { upsertedCount } = await NotificationModel.updateOne({
+    await NotificationModel.create({
       user: userId,
+      seen: false,
+      read: false,
       type: NOTIFICATION_TYPES.EXPIRING_INVENTORY_ITEM,
-      'typeDetails.dateThreshold': endOfNextMonth
-    }, {
-      $setOnInsert: {
-        user: userId,
-        seen: false,
-        read: false,
-        type: NOTIFICATION_TYPES.EXPIRING_INVENTORY_ITEM,
-        typeDetails: {
-          expiringItems,
-          dateThreshold: endOfNextMonth
-        },
-        createdAt: new Date()
-      }
-    }, {
-      upsert: true
+      typeDetails: {
+        expiringItems: unmentionedExpiringItems,
+        dateThreshold: endOfNextMonth
+      },
+      createdAt: new Date()
     })
-
-    if (upsertedCount > 0) {
-      logger(`User notification sent to ${user._id.toString()}`)
-    }
+    
+    logger(`User notification sent to ${user._id.toString()}`)
   }
 
   logger('Task ended successfully')
