@@ -2,7 +2,7 @@
 
 const { Storage } = require('@google-cloud/storage')
 const { Types } = require('mongoose')
-const { addMonths, endOfMonth } = require('date-fns')
+const { addMonths, endOfMonth, startOfDay } = require('date-fns')
 
 const config = require('../config')
 
@@ -83,7 +83,7 @@ class InkindDonationsController {
               throw new BadRequestError(`Category data type is invalid for "${field.label}": ${value}`)
             }
 
-            category.customFields[key] = dateValue
+            category.customFields[key] = startOfDay(dateValue)
           }
         }
       }
