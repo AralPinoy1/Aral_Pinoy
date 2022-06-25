@@ -326,7 +326,7 @@ class UserController {
       }
     })
 
-    if (sortField === 'eventsVolunteeredCount' && sortOrder !== undefined) {
+    if (sortField !== undefined && sortOrder !== undefined) {
       aggregationQuery.push({
         $sort: {
           [sortField]: SORT_ORDER_MAPPING[sortOrder]
