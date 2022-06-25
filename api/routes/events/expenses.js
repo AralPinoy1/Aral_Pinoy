@@ -54,6 +54,10 @@ async function list(req, res, next) {
       const groupListResult = await EventExpenseController.groupList({
         offset,
         limit,
+        sort: {
+          field: sortField,
+          order: sortOrder
+        }
       })
   
       results = groupListResult.results

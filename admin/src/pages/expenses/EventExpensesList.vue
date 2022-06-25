@@ -79,6 +79,14 @@
                             </b-link>
                           </template>
 
+                          <template #cell(createdAt)="{ value }">
+                            {{
+                              new Date(value).toLocaleString('en-us', {
+                                dateStyle: 'medium'
+                              })
+                            }}
+                          </template>
+
                           <template #cell(budget)="{ item }">
                             <span v-if="item.event.budget !== undefined">
                               {{
@@ -155,6 +163,10 @@ import { apiClient } from '../../axios'
 
 const eventExpenseRepository = new EventExpenseRepository(apiClient)
 
+const GROUPED_EXPENSES_SORT_MAPPING = {
+  createdAt: 'createdAt'
+}
+
 export default {
   components: {
     ExpensesListModal
@@ -167,6 +179,7 @@ export default {
         results: [],
         fields: [
           { key: 'event', label: 'Event' },
+          { key: 'createdAt', label: 'Event Start Date', sortable: true },
           { key: 'budget', label: 'Proposed Budget' },
           { key: 'amount', label: 'Actual Expenses' }
         ],
@@ -192,16 +205,27 @@ export default {
   },
   methods: {
     async getGroupedExpenses (ctx) {
+      const {
+        sortBy,
+        sortDesc
+      } = ctx
+
       const limit = this.groupedExpenses.perPage
       const offset = this.groupedExpensePageOffset
+      const sort = {
+        field: 'createdAt',
+        order: 'desc'
+      }
+
+      if (sortBy !== undefined && sortBy !== '') {
+        sort.field = GROUPED_EXPENSES_SORT_MAPPING[sortBy]
+        sort.order = sortDesc ? 'desc' : 'asc'
+      }
 
       const { results, total } = await eventExpenseRepository.list({}, {
         limit,
         offset,
-        sort: {
-          field: 'createdAt',
-          order: 'desc'
-        },
+        sort,
         grouped: true
       })
 

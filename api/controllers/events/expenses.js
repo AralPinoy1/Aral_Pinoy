@@ -67,44 +67,56 @@ class EventExpenseController {
     const {
       limit,
       offset,
+      sort: {
+        field: sortField,
+        order: sortOrder
+      }
     } = options
 
-    const aggregationResults = await Promise.all([
-      EventExpenseModel.aggregate([{
-        $group: {
-          _id: '$event',
-          amount: {
-            $sum: '$amount'
-          },
-          createdAt: {
-            $max: '$createdAt'
-          }
+    const aggregationQuery = [{
+      $group: {
+        _id: '$event',
+        amount: {
+          $sum: '$amount'
+        },
+        createdAt: {
+          $max: '$createdAt'
         }
-      }, {
+      }
+    }, {
+      $addFields: {
+        event: '$_id'
+      }
+    }, {
+      $project: {
+        _id: 0
+      }
+    }, {
+      $project: {
+        event: 1,
+        amount: {
+          $divide: ['$amount', 1000]
+        },
+        createdAt: 1,
+      }
+    }]
+
+    if (sortField !== undefined && sortOrder !== undefined) {
+      aggregationQuery.push({
         $sort: {
-          createdAt: -1
+          [sortField]: SORT_ORDER_MAPPING[sortOrder]
         }
-      }, {
-        $addFields: {
-          event: '$_id'
-        }
-      }, {
-        $project: {
-          createdAt: 0,
-          _id: 0
-        }
-      }, {
-        $project: {
-          event: 1,
-          amount: {
-            $divide: ['$amount', 1000]
-          }
-        }
-      }, {
-        $skip: offset
-      }, {
-        $limit: limit
-      }]),
+      })
+    }
+    
+    aggregationQuery.push({
+      $skip: offset
+    }, {
+      $limit: limit
+    })
+
+    const aggregationResults = await Promise.all([
+      EventExpenseModel.aggregate(aggregationQuery),
       EventExpenseModel.aggregate([ 
         {
           $group: {
