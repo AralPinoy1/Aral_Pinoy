@@ -213,6 +213,37 @@
                                   </b-col>
                                 </b-row>
                               </b-col>
+
+                              <b-col cols="4">
+                                <b-dropdown
+                                  class="w-50"
+                                  size="sm"
+                                  text="Filter by Status"
+                                >
+                                  <b-dropdown-form style="width: 100%">
+                                    <div
+                                      v-for="option in events.statusOptions"
+                                      :key="option"
+                                      class="form-check form-switch"
+                                    >
+                                      <label
+                                        class="form-check-label"
+                                        :for="`event-status-checkbox-${option}`"
+                                      >
+                                        {{ option }}
+                                      </label>
+
+                                      <input
+                                        :id="`event-status-checkbox-${option}`"
+                                        v-model="events.filters.statuses"
+                                        class="form-check-input"
+                                        type="checkbox"
+                                        :value="option"
+                                      >
+                                    </div>
+                                  </b-dropdown-form>
+                                </b-dropdown>
+                              </b-col>
                             </b-row>
                           </b-container>
                         </b-col>
@@ -221,6 +252,7 @@
                       <b-row class="pt-4">
                         <b-col cols="12">
                           <b-table
+                            ref="eventDonations"
                             :items="getEvents"
                             :fields="events.fields"
                             :current-page="events.pagination.currentPage"
@@ -318,6 +350,10 @@ const MONETARY_DONATION_SORT_MAPPING = {
   createdAt: 'updatedAt'
 }
 
+const EVENT_DONATION_SORT_MAPPING = {
+  startDate: 'date.start'
+}
+
 export default {
   name: 'MonetaryDonationList',
   components: {
@@ -354,12 +390,16 @@ export default {
           currentPage: 1
         },
         fields: [
-          { key: 'startDate', label: 'Date' },
+          { key: 'startDate', label: 'Date', sortable: true },
           { key: 'name', label: 'Event Name' },
           { key: 'donationGoal', label: 'Donation Goal', class: 'text-end' },
           { key: 'donationCurrent', label: 'Donation Collection', class: 'text-end' },
           { key: 'status', label: 'Event Status' }
-        ]
+        ],
+        filters: {
+          statuses: ['UPCOMING', 'ENDED']
+        },
+        statusOptions: ['UPCOMING', 'ENDED']
       },
       eventDonations: {
         modal: false,
@@ -383,6 +423,13 @@ export default {
       }
 
       this.$refs.monetaryDonations.refresh()
+    },
+    'events.filters.statuses' (val) {
+      if (val.length === 0) {
+        return
+      }
+
+      this.$refs.eventDonations.refresh()
     }
   },
   created () {
@@ -393,18 +440,31 @@ export default {
   },
   methods: {
     async getEvents (ctx) {
+      const {
+        sortBy,
+        sortDesc
+      } = ctx
+
       const perPage = this.events.pagination.perPage
       const pageOffset = this.eventsPageOffset
+      const status = this.events.filters.statuses
+      const sort = {
+        field: 'date.start',
+        order: 'desc'
+      }
+
+      if (sortBy !== undefined && sortBy !== '') {
+        sort.field = EVENT_DONATION_SORT_MAPPING[sortBy]
+        sort.order = sortDesc ? 'desc' : 'asc'
+      }
 
       const { results, total } = await eventRepository.list({
-        hasMonetaryGoal: true
+        hasMonetaryGoal: true,
+        status
       }, {
         limit: perPage,
         offset: pageOffset,
-        sort: {
-          field: 'date.start',
-          order: 'asc'
-        }
+        sort
       })
 
       this.events.total = total
