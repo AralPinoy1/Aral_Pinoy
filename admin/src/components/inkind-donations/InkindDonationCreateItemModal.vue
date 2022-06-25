@@ -258,6 +258,7 @@
                     v-model="customField.value"
                     :label="customField.key"
                     value-as-date
+                    :min="today"
                   />
                 </template>
               </b-col>
@@ -422,6 +423,8 @@ extend('max', {
   message: 'This field must be less than or equal to {length} characters'
 })
 
+const today = new Date()
+
 export default {
   name: 'InkindDonationCreateItemModal',
   components: {
@@ -440,6 +443,7 @@ export default {
   },
   data () {
     return {
+      today,
       modal: false,
       isLoading: false,
       itemGroupSearch: '',
