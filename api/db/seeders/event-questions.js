@@ -18,11 +18,6 @@ const eventQuestions = [
     type: 'matrix:likely'
   },
   {
-    label: 'How satisfied are you with the amount of sessions and activities conducted?',
-    norm: 'how satisfied are you with the amount of sessions and activities conducted?',
-    type: 'matrix:satisfied'
-  },
-  {
     label: 'How likely are you to recommend a friend to join Aral Pinoy events?',
     norm: 'how likely are you to recommend a friend to join aral pinoy events?',
     type: 'matrix:likely'
