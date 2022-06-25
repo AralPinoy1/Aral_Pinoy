@@ -1340,7 +1340,8 @@ export default {
       eventJobFields: [
         { key: 'name', label: 'Title' },
         { key: 'description', label: 'Description' },
-        { key: 'slots.max', label: 'Number of Volunteers Needed' },
+        { key: 'slots.current', label: 'Volunteered' },
+        { key: 'slots.max', label: 'Volunteers Needed' },
         { key: 'skills', label: 'Skills' }
       ],
       eventQuestionFields: [
