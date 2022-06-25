@@ -518,7 +518,6 @@
                                     datasets: question.datasets
                                   }"
                                   :options="{
-                                    indexAxis: 'y',
                                     datasets: {
                                       bar: {
                                         barPercentage: '0.65',
@@ -531,15 +530,12 @@
                                     },
                                     scales: {
                                       yAxes: {
-                                        display: false
-                                      },
-                                      xAxes: {
                                         ticks: {
                                           min: 0,
                                           beginAtZero: true,
                                           precision: 0
                                         }
-                                      }
+                                      },
                                     },
                                     responsive: true,
                                     plugins: {
