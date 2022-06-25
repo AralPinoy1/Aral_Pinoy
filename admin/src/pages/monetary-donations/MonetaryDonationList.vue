@@ -333,7 +333,7 @@ export default {
         filters: {
           statuses: ['success']
         },
-        statusOptions: ['success', 'failed', 'pending', 'voided', 'refunded'],
+        statusOptions: ['success', 'failed', 'pending'],
         pagination: {
           perPage: 5,
           currentPage: 1
