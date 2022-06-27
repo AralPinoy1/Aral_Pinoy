@@ -12,6 +12,8 @@ const EventDonationModel = require('../../models/events/donations')
 const EventExpenseModel = require('../../models/events/expenses')
 const EventModel = require('../../models/events')
 
+const EVENT_STATUSES = require('../../constants/events').STATUSES
+
 const DATE_FORMAT = 'MM/dd/yy'
 
 /**
@@ -146,6 +148,7 @@ class ReportIncomeStatementController {
     }
 
     const events = await EventModel.find({
+      status: EVENT_STATUSES.ENDED,
       'date.start': {
         $gte: startOfDay(start),
         $lte: endOfDay(end)
