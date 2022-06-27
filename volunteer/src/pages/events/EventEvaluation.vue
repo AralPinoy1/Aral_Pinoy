@@ -143,78 +143,24 @@
                           <b-row
                             v-for="(question, questionIndex) in event.questions"
                             :key="`question-${questionIndex}`"
+                            class="my-5"
                             style="text-align: left;"
                           >
-                            <b-form-group
-                              v-if="question.type === 'matrix'"
-                              v-slot="{ ariaDescribedby }"
-                              :label="question.label"
-                            >
-                              <b-col
-                                class="mb-3"
-                                cols="12"
-                              >
-                                <b-form-radio
-                                  v-model="questionnaireAnswers[questionIndex]"
-                                  :aria-describedby="ariaDescribedby"
-                                  value="Very Satisfied"
-                                >
-                                  &nbsp;Very Satisfied
-                                </b-form-radio>
-                              </b-col>
-
-                              <b-col
-                                class="mb-3"
-                                cols="12"
-                              >
-                                <b-form-radio
-                                  v-model="questionnaireAnswers[questionIndex]"
-                                  :aria-describedby="ariaDescribedby"
-                                  value="Satisfied"
-                                >
-                                  &nbsp;Satisfied
-                                </b-form-radio>
-                              </b-col>
-
-                              <b-col
-                                class="mb-3"
-                                cols="12"
-                              >
-                                <b-form-radio
-                                  v-model="questionnaireAnswers[questionIndex]"
-                                  :aria-describedby="ariaDescribedby"
-                                  value="Neutral"
-                                >
-                                  &nbsp;Neutral
-                                </b-form-radio>
-                              </b-col>
-
-                              <b-col
-                                class="mb-3"
-                                cols="12"
-                              >
-                                <b-form-radio
-                                  v-model="questionnaireAnswers[questionIndex]"
-                                  :aria-describedby="ariaDescribedby"
-                                  value="Dissatisfied"
-                                >
-                                  &nbsp;Dissatisfied
-                                </b-form-radio>
-                              </b-col>
-
-                              <b-col
-                                class="mb-3"
-                                cols="12"
-                              >
-                                <b-form-radio
-                                  v-model="questionnaireAnswers[questionIndex]"
-                                  :aria-describedby="ariaDescribedby"
-                                  value="Very Dissatisfied"
-                                >
-                                  &nbsp;Very Dissatisfied
-                                </b-form-radio>
-                              </b-col>
-                            </b-form-group>
+                            <polar-question
+                              v-if="question.type === 'polar'"
+                              :question="question"
+                              @answer-updated="(update) => handleEventQuestionAnswer(questionIndex, update)"
+                            />
+                            <matrix-satisfied-question
+                              v-else-if="question.type === 'matrix' || question.type === 'matrix:satisfied'"
+                              :question="question"
+                              @answer-updated="(update) => handleEventQuestionAnswer(questionIndex, update)"
+                            />
+                            <matrix-likely-question
+                              v-else-if="question.type === 'matrix:likely'"
+                              :question="question"
+                              @answer-updated="(update) => handleEventQuestionAnswer(questionIndex, update)"
+                            />
                           </b-row>
 
                           <b-row
@@ -223,8 +169,13 @@
                             class="my-5"
                             style="text-align: left;"
                           >
+                            <polar-question
+                              v-if="question.type === 'polar'"
+                              :question="question"
+                              @answer-updated="handleUniversalQuestionAnswer"
+                            />
                             <matrix-satisfied-question
-                              v-if="question.type === 'matrix:satisfied'"
+                              v-else-if="question.type === 'matrix:satisfied'"
                               :question="question"
                               @answer-updated="handleUniversalQuestionAnswer"
                             />
@@ -407,6 +358,7 @@ import { mapGetters } from 'vuex'
 import _ from 'lodash'
 
 import Footer from '../../components/Footer'
+import PolarQuestion from '../../components/event-evaluation/PolarQuestion'
 import MatrixSatisfiedQuestion from '../../components/event-evaluation/MatrixSatisfiedQuestion'
 import MatrixLikelyQuestion from '../../components/event-evaluation/MatrixLikelyQuestion'
 
@@ -419,6 +371,7 @@ const logo = require('../../assets/aralpinoywords.png')
 export default {
   components: {
     Footer,
+    PolarQuestion,
     MatrixSatisfiedQuestion,
     MatrixLikelyQuestion
   },
@@ -602,6 +555,11 @@ export default {
 
         this.questionnaireAnswers.push(nullAnswers)
       }
+    },
+    handleEventQuestionAnswer (index, update) {
+      const { answer } = update
+
+      this.questionnaireAnswers[index] = answer
     },
     handleUniversalQuestionAnswer (update) {
       const { question, answer } = update

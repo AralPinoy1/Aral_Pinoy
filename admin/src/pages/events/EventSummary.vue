@@ -554,6 +554,60 @@
                           </b-container>
                         </b-col>
                       </b-row>
+
+                      <b-row
+                        v-for="(question, i) in universalQuestionnaireChart"
+                        :key="`universal-question-${i}`"
+                      >
+                        <b-col cols="12">
+                          <b-container fluid>
+                            <b-row
+                              class="py-5"
+                            >
+                              <b-col cols="12">
+                                <bar-chart
+                                  :height="150"
+                                  :chart-data="{
+                                    labels: question.labels,
+                                    datasets: question.datasets
+                                  }"
+                                  :options="{
+                                    datasets: {
+                                      bar: {
+                                        barPercentage: '0.65',
+                                      }
+                                    },
+                                    elements: {
+                                      bar: {
+                                        borderWidth: 2,
+                                      }
+                                    },
+                                    scales: {
+                                      yAxes: {
+                                        ticks: {
+                                          min: 0,
+                                          beginAtZero: true,
+                                          precision: 0
+                                        }
+                                      },
+                                    },
+                                    responsive: true,
+                                    plugins: {
+                                      legend: {
+                                        position: 'top',
+                                      },
+                                      title: {
+                                        display: true,
+                                        text: question.title
+                                      }
+                                    }
+                                  }"
+                                />
+                              </b-col>
+                            </b-row>
+                          </b-container>
+                        </b-col>
+                      </b-row>
                     </b-card>
                   </b-col>
                 </b-row>
@@ -588,11 +642,20 @@ const successColor = '#198754'
 const dangerColor = '#dc3545'
 
 const polarQuestionColors = {
+  Yes: successColor,
+  No: '#9c2531'
+}
+
+const matrixQuestionColors = {
   'Very Satisfied': successColor,
+  'Very Likely': successColor,
   Satisfied: '#16786e',
+  Likely: '#16786e',
   Neutral: '#b8b8b8',
   Dissatisfied: '#dc3545',
-  'Very Dissatisfied': '#9c2531'
+  Unlikely: '#16786e',
+  'Very Dissatisfied': '#9c2531',
+  'Very Unlikely': '#9c2531'
 }
 
 const POLAR_QUESTION_MAP = {
@@ -613,6 +676,7 @@ export default {
       eventEvaluations: [],
       eventSdgAnswersMap: {},
       eventEvaluationAnswersMap: {},
+      eventUniversalAnswersMap: {},
       isLoadingEvent: false,
       isLoadingEventExpenses: false,
       isLoadingEventVolunteers: false,
@@ -925,45 +989,190 @@ export default {
       const charts = []
 
       for (const [, value] of Object.entries(this.eventEvaluationAnswersMap)) {
-        const { label, data } = value
+        const {
+          type,
+          label,
+          data
+        } = value
 
-        const vsData = data['Very Satisfied']
-        const sData = data.Satisfied
-        const nData = data.Neutral
-        const dData = data.Dissatisfied
-        const vdData = data['Very Dissatisfied']
+        if (type === 'polar') {
+          charts.push({
+            title: label,
+            labels: [''],
+            datasets: [
+              {
+                label: 'Yes',
+                backgroundColor: polarQuestionColors.Yes,
+                data: [data['1']]
+              },
+              {
+                label: 'No',
+                backgroundColor: polarQuestionColors.No,
+                data: [data['0']]
+              }
+            ]
+          })
+        } else if (type === 'matrix' || type === 'matrix:satisfied') {
+          charts.push({
+            title: label,
+            labels: [''],
+            datasets: [
+              {
+                label: 'Very Satisfied',
+                backgroundColor: matrixQuestionColors['Very Satisfied'],
+                data: [data['Very Satisfied']]
+              },
+              {
+                label: 'Satisfied',
+                backgroundColor: matrixQuestionColors.Satisfied,
+                data: [data.Satisfied]
+              },
+              {
+                label: 'Neutral',
+                backgroundColor: matrixQuestionColors.Neutral,
+                data: [data.Neutral]
+              },
+              {
+                label: 'Dissatisfied',
+                backgroundColor: matrixQuestionColors.Dissatisfied,
+                data: [data.Dissatisfied]
+              },
+              {
+                label: 'Very Dissatisfied',
+                backgroundColor: matrixQuestionColors['Very Dissatisfied'],
+                data: [data['Very Dissatisfied']]
+              }
+            ]
+          })
+        } else if (type === 'matrix:likely') {
+          charts.push({
+            title: label,
+            labels: [''],
+            datasets: [
+              {
+                label: 'Very Likely',
+                backgroundColor: matrixQuestionColors['Very Likely'],
+                data: [data['Very Likely']]
+              },
+              {
+                label: 'Likely',
+                backgroundColor: matrixQuestionColors.Likely,
+                data: [data.Likely]
+              },
+              {
+                label: 'Neutral',
+                backgroundColor: matrixQuestionColors.Neutral,
+                data: [data.Neutral]
+              },
+              {
+                label: 'Unlikely',
+                backgroundColor: matrixQuestionColors.Unlikely,
+                data: [data.Unlikely]
+              },
+              {
+                label: 'Very Unlikely',
+                backgroundColor: matrixQuestionColors['Very Unlikely'],
+                data: [data['Very Unlikely']]
+              }
+            ]
+          })
+        }
+      }
 
-        charts.push({
-          title: label,
-          labels: [''],
-          datasets: [
-            {
-              label: 'Very Satisfied',
-              backgroundColor: polarQuestionColors['Very Satisfied'],
-              data: [vsData]
-            },
-            {
-              label: 'Satisfied',
-              backgroundColor: polarQuestionColors.Satisfied,
-              data: [sData]
-            },
-            {
-              label: 'Neutral',
-              backgroundColor: polarQuestionColors.Neutral,
-              data: [nData]
-            },
-            {
-              label: 'Dissatisfied',
-              backgroundColor: polarQuestionColors.Dissatisfied,
-              data: [dData]
-            },
-            {
-              label: 'Very Dissatisfied',
-              backgroundColor: polarQuestionColors['Very Dissatisfied'],
-              data: [vdData]
-            }
-          ]
-        })
+      return charts
+    },
+    universalQuestionnaireChart () {
+      const charts = []
+
+      for (const [, value] of Object.entries(this.eventUniversalAnswersMap)) {
+        const {
+          type,
+          label,
+          data
+        } = value
+
+        if (type === 'polar') {
+          charts.push({
+            title: label,
+            labels: [''],
+            datasets: [
+              {
+                label: 'Yes',
+                backgroundColor: polarQuestionColors.Yes,
+                data: [data['1']]
+              },
+              {
+                label: 'No',
+                backgroundColor: polarQuestionColors.No,
+                data: [data['0']]
+              }
+            ]
+          })
+        } else if (type === 'matrix' || type === 'matrix:satisfied') {
+          charts.push({
+            title: label,
+            labels: [''],
+            datasets: [
+              {
+                label: 'Very Satisfied',
+                backgroundColor: matrixQuestionColors['Very Satisfied'],
+                data: [data['Very Satisfied']]
+              },
+              {
+                label: 'Satisfied',
+                backgroundColor: matrixQuestionColors.Satisfied,
+                data: [data.Satisfied]
+              },
+              {
+                label: 'Neutral',
+                backgroundColor: matrixQuestionColors.Neutral,
+                data: [data.Neutral]
+              },
+              {
+                label: 'Dissatisfied',
+                backgroundColor: matrixQuestionColors.Dissatisfied,
+                data: [data.Dissatisfied]
+              },
+              {
+                label: 'Very Dissatisfied',
+                backgroundColor: matrixQuestionColors['Very Dissatisfied'],
+                data: [data['Very Dissatisfied']]
+              }
+            ]
+          })
+        } else if (type === 'matrix:likely') {
+          charts.push({
+            title: label,
+            labels: [''],
+            datasets: [
+              {
+                label: 'Very Likely',
+                backgroundColor: matrixQuestionColors['Very Likely'],
+                data: [data['Very Likely']]
+              },
+              {
+                label: 'Likely',
+                backgroundColor: matrixQuestionColors.Likely,
+                data: [data.Likely]
+              },
+              {
+                label: 'Neutral',
+                backgroundColor: matrixQuestionColors.Neutral,
+                data: [data.Neutral]
+              },
+              {
+                label: 'Unlikely',
+                backgroundColor: matrixQuestionColors.Unlikely,
+                data: [data.Unlikely]
+              },
+              {
+                label: 'Very Unlikely',
+                backgroundColor: matrixQuestionColors['Very Unlikely'],
+                data: [data['Very Unlikely']]
+              }
+            ]
+          })
+        }
       }
 
       return charts
@@ -1087,6 +1296,7 @@ export default {
         const { questions, sdgs } = event
 
         const eventEvaluationAnswersMap = {}
+        const eventUniversalAnswersMap = {}
         const eventSdgAnswersMap = {}
 
         for (const evaluation of evaluations) {
@@ -1094,18 +1304,43 @@ export default {
             for (let i = 0; i < evaluation.questionnaireAnswers.length; i++) {
               const answer = evaluation.questionnaireAnswers[i]
               const question = questions[i]
+              const eventQuestion = this.event.questions[i]
 
               let map = eventEvaluationAnswersMap[i]
 
               if (map === undefined) {
-                map = {
-                  label: question.label,
-                  data: {
-                    'Very Satisfied': 0,
-                    Satisfied: 0,
-                    Neutral: 0,
-                    Dissatisfied: 0,
-                    'Very Dissatisfied': 0
+                if (eventQuestion.type === 'matrix' || eventQuestion.type === 'matrix:satisfied') {
+                  map = {
+                    type: eventQuestion.type,
+                    label: question.label,
+                    data: {
+                      'Very Satisfied': 0,
+                      Satisfied: 0,
+                      Neutral: 0,
+                      Dissatisfied: 0,
+                      'Very Dissatisfied': 0
+                    }
+                  }
+                } else if (eventQuestion.type === 'matrix:likely') {
+                  map = {
+                    type: eventQuestion.type,
+                    label: question.label,
+                    data: {
+                      'Very Likely': 0,
+                      Likely: 0,
+                      Neutral: 0,
+                      Unlikely: 0,
+                      'Very Unlikely': 0
+                    }
+                  }
+                } else if (eventQuestion.type === 'polar') {
+                  map = {
+                    type: eventQuestion.type,
+                    label: question.label,
+                    data: {
+                      1: 0,
+                      0: 0
+                    }
                   }
                 }
               }
@@ -1154,9 +1389,59 @@ export default {
               eventSdgAnswersMap[i] = sdgMap
             }
           }
+
+          if (Array.isArray(evaluation.universalQuestionnaireAnswers)) {
+            for (let i = 0; i < evaluation.universalQuestionnaireAnswers.length; i++) {
+              const { question, answer } = evaluation.universalQuestionnaireAnswers[i]
+
+              let map = eventUniversalAnswersMap[question.label]
+
+              if (map === undefined) {
+                if (question.type === 'matrix' || question.type === 'matrix:satisfied') {
+                  map = {
+                    type: question.type,
+                    label: question.label,
+                    data: {
+                      'Very Satisfied': 0,
+                      Satisfied: 0,
+                      Neutral: 0,
+                      Dissatisfied: 0,
+                      'Very Dissatisfied': 0
+                    }
+                  }
+                } else if (question.type === 'matrix:likely') {
+                  map = {
+                    type: question.type,
+                    label: question.label,
+                    data: {
+                      'Very Likely': 0,
+                      Likely: 0,
+                      Neutral: 0,
+                      Unlikely: 0,
+                      'Very Unlikely': 0
+                    }
+                  }
+                } else if (question.type === 'polar') {
+                  map = {
+                    type: question.type,
+                    label: question.label,
+                    data: {
+                      1: 0,
+                      0: 0
+                    }
+                  }
+                }
+              }
+
+              map.data[answer] += 1
+
+              eventUniversalAnswersMap[i] = map
+            }
+          }
         }
 
         this.eventEvaluationAnswersMap = eventEvaluationAnswersMap
+        this.eventUniversalAnswersMap = eventUniversalAnswersMap
         this.eventSdgAnswersMap = eventSdgAnswersMap
       } finally {
         this.isLoadingEventEvaluations = false

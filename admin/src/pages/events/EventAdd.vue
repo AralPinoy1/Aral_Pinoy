@@ -986,6 +986,36 @@
                                           </b-col>
 
                                           <b-col
+                                            class="py-3"
+                                            cols="12"
+                                          >
+                                            <b-form-group class="text-start">
+                                              <label
+                                                for="select-question-type"
+                                                style="font-family: 'Bebas Neue', cursive;"
+                                              >
+                                                Question Type
+                                              </label>
+
+                                              <b-col>
+                                                <select
+                                                  id="select-question-type"
+                                                  v-model="questionForm.type"
+                                                  class="form-select"
+                                                >
+                                                  <option
+                                                    v-for="type in questionTypeOptions"
+                                                    :key="type.value"
+                                                    :value="type.value"
+                                                  >
+                                                    {{ type.label }}
+                                                  </option>
+                                                </select>
+                                              </b-col>
+                                            </b-form-group>
+                                          </b-col>
+
+                                          <b-col
                                             cols="12"
                                             md="6"
                                           >
@@ -1299,8 +1329,23 @@ export default ({
       ],
       showQuestionForm: false,
       questionForm: {
-        label: ''
+        label: '',
+        type: 'polar'
       },
+      questionTypeOptions: [
+        {
+          label: 'Polar - Yes/No',
+          value: 'polar'
+        },
+        {
+          label: 'Matrix - Very Satisfied/Dissatisfied',
+          value: 'matrix:satisfied'
+        },
+        {
+          label: 'Matrix - Very Likely/Unlikely',
+          value: 'matrix:likely'
+        }
+      ],
       budgetForm: {
         show: false,
         details: {
@@ -1726,19 +1771,20 @@ export default ({
       this.event.jobs.splice(index, 1)
     },
     addEventQuestion () {
-      const { label } = this.questionForm
+      const { label, type } = this.questionForm
 
       if (label !== undefined && label.trim() !== '') {
         this.event.questions.push({
           label,
-          type: 'matrix'
+          type
         })
       }
 
       this.showQuestionForm = false
 
       this.questionForm = {
-        label: ''
+        label: '',
+        type: 'polar'
       }
     },
     removeEventQuestion (index) {

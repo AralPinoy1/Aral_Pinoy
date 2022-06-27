@@ -45,7 +45,7 @@ const jobsSchema = Joi.array().items(
 const questionsSchema = Joi.array().items(
   Joi.object({
     label: Joi.string().trim().max(255).required(),
-    type: Joi.string().valid('matrix').required()
+    type: Joi.string().valid('polar', 'matrix:satisfied', 'matrix:likely').required()
   })
 )
 
