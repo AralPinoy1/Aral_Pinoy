@@ -13,8 +13,21 @@ class SendgridMailController {
     await transporter.sendResetPasswordSuccess(to)
   }
 
-  static async sendIkdAcknowledgement(to, item) {
-    await transporter.sendIkdAcknowledgement(to, item)
+  /**
+   * Send in-kind donation acknowledgement email via SendGrid
+   * @param {Object} params Parameters
+   * @param {Object} params.email Email object
+   * @param {string} params.email.to To address
+   * @param {Object} params.donor Donor details
+   * @param {string} params.donor.name Donor name
+   * @param {Object} params.donor.item Donated item
+   * @param {Object} params.donor.item.name Item name
+   * @param {Object} params.donor.item.quantity Item quantity
+   * @param {Object} params.donor.item.unit Unit of measurement
+   * @returns {Promise<void>}
+   */
+  static async sendIkdAcknowledgement(params) {
+    await transporter.sendIkdAcknowledgement(params)
   }
 
   /**

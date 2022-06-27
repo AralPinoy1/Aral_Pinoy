@@ -46,19 +46,35 @@ class SendgridTransporter extends BaseTransporter {
   }
 
   /**
-   * 
-   * @param {*} to 
-   * @param {*} item 
+   * Send in-kind donation acknowledgement email via SendGrid
+   * @param {Object} params Parameters
+   * @param {Object} params.email Email object
+   * @param {string} params.email.to To address
+   * @param {Object} params.donor Donor details
+   * @param {string} params.donor.name Donor name
+   * @param {Object} params.donor.item Donated item
+   * @param {Object} params.donor.item.name Item name
+   * @param {Object} params.donor.item.quantity Item quantity
+   * @param {Object} params.donor.item.unit Unit of measurement
    * @returns {Promise<void>}
    */
-  async sendIkdAcknowledgement(to, item) {
+  async sendIkdAcknowledgement(params) {
+    const {
+      email,
+      donor: {
+        name: donorName,
+        item
+      }
+    } = params
+
     await this.transporter.sendMail({
       from: this.supportFromAddress,
-      to,
+      to: email.to,
       replyTo: 'support@aralpinoy.xyz',
       subject: 'Thank you for your In-Kind Donation!',
       template: 'inkind-donation-acknowledgement',
       context: {
+        donorName,
         item: {
           name: item.name,
           quantity: item.quantity,
