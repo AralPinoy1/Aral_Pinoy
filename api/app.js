@@ -95,7 +95,7 @@ const publicRoutes = [
     methods: ['GET']
   },
   {
-    url: '/form-templates/static/post_event_form',
+    url: /^\/form-templates\/static\/*/,
     methods: ['GET']
   },
 ]

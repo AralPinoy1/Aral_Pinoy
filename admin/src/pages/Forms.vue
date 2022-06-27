@@ -19,18 +19,46 @@
                       <div class="d-flex w-100 justify-content-between">
                         <div>
                           <h5 class="mb-1">
-                            Post Event Form
+                            Incidents Form
                           </h5>
 
                           <p class="mb-1">
-                            Downloads the form for listing down items used, expense breakdown, etc.
+                            Downloads the form for listing down incidents for events
                           </p>
                         </div>
 
                         <button
                           class="btn btn-danger"
                           type="button"
-                          @click="downloadPostEventForm"
+                          @click="downloadIncidentsForm"
+                        >
+                          <span>
+                            Download
+                          </span>
+                        </button>
+                      </div>
+                    </b-list-group-item>
+                  </b-list-group>
+                </b-col>
+
+                <b-col cols="12">
+                  <b-list-group style="text-align: left">
+                    <b-list-group-item class="mb-4 flex-column align-items-start">
+                      <div class="d-flex w-100 justify-content-between">
+                        <div>
+                          <h5 class="mb-1">
+                            Review Form
+                          </h5>
+
+                          <p class="mb-1">
+                            Downloads the form for writing a review for an event
+                          </p>
+                        </div>
+
+                        <button
+                          class="btn btn-danger"
+                          type="button"
+                          @click="downloadReviewForm"
                         >
                           <span>
                             Download
@@ -52,20 +80,17 @@
 <script>
 import config from '../../config'
 
-const postEventFormUrl = new URL('/form-templates/static/post_event_form', config.api.baseUrl)
+const incidentsFormUrl = new URL('/form-templates/static/incidents-form', config.api.baseUrl)
+const reviewFormUrl = new URL('/form-templates/static/review-form', config.api.baseUrl)
 
 export default {
   name: 'Forms',
-  data () {
-    return {
-      downloadableForms: {
-        postEvent: postEventFormUrl.toString()
-      }
-    }
-  },
   methods: {
-    async downloadPostEventForm () {
-      window.open(this.downloadableForms.postEvent, '_blank')
+    async downloadIncidentsForm () {
+      window.open(incidentsFormUrl.toString(), '_blank')
+    },
+    async downloadReviewForm () {
+      window.open(reviewFormUrl.toString(), '_blank')
     }
   }
 }

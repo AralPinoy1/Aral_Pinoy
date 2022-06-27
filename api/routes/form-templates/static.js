@@ -5,22 +5,36 @@ const path = require('path')
 
 const express = require('express')
 
-const postEventFormFilePath = path.resolve(__dirname, '../../form-templates/static', './post_event_form.pdf')
+const incidentsFormFilePath = path.resolve(__dirname, '../../form-templates/static', './incidents_form.pdf')
+const reviewFormFilePath = path.resolve(__dirname, '../../form-templates/static', './review_form.pdf')
 
-async function showPostEventForm(req, res) {
-  const stat = fs.statSync(postEventFormFilePath)
+async function showIncidentsForm(req, res) {
+  const stat = fs.statSync(incidentsFormFilePath)
 
   res.setHeader('Content-Length', stat.size)
   res.setHeader('Content-Type', 'application/pdf')
-  res.setHeader('Content-Disposition', 'attachment; filename=post_event_form.pdf')
+  res.setHeader('Content-Disposition', 'attachment; filename=incidents_form.pdf')
 
-  const file = fs.createReadStream(postEventFormFilePath)
+  const file = fs.createReadStream(incidentsFormFilePath)
+
+  file.pipe(res)
+}
+
+async function showReviewForm(req, res) {
+  const stat = fs.statSync(reviewFormFilePath)
+
+  res.setHeader('Content-Length', stat.size)
+  res.setHeader('Content-Type', 'application/pdf')
+  res.setHeader('Content-Disposition', 'attachment; filename=review_form.pdf')
+
+  const file = fs.createReadStream(reviewFormFilePath)
 
   file.pipe(res)
 }
 
 const router = express.Router()
 
-router.get('/post_event_form', showPostEventForm)
+router.get('/incidents-form', showIncidentsForm)
+router.get('/review-form', showReviewForm)
 
 module.exports = router
