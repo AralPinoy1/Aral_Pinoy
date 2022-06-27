@@ -258,7 +258,7 @@
                     v-model="customField.value"
                     :label="customField.key"
                     value-as-date
-                    :min="today"
+                    :min="tomorrow"
                   />
                 </template>
               </b-col>
@@ -396,6 +396,7 @@ import { mapGetters } from 'vuex'
 import { pickBy, identity } from 'lodash'
 import { ValidationObserver, ValidationProvider, extend } from 'vee-validate'
 import { required, min, max } from 'vee-validate/dist/rules'
+import { addDays } from 'date-fns'
 
 import InkindDonationGroupRepository from '../../repositories/inkind-donations/groups'
 import InkindDonationCategoryRepository from '../../repositories/inkind-donations/categories'
@@ -423,7 +424,7 @@ extend('max', {
   message: 'This field must be less than or equal to {length} characters'
 })
 
-const today = new Date()
+const tomorrow = addDays(new Date(), 1)
 
 export default {
   name: 'InkindDonationCreateItemModal',
@@ -443,7 +444,7 @@ export default {
   },
   data () {
     return {
-      today,
+      tomorrow,
       modal: false,
       isLoading: false,
       itemGroupSearch: '',
