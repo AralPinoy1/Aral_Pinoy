@@ -168,7 +168,7 @@
                   class="d-flex w-100 justify-content-center"
                   cols="12"
                 >
-                  <trend-chart
+                  <bar-chart
                     :height="500"
                     :width="500"
                     :chart-data="{
@@ -217,6 +217,7 @@ import ReportRepository from '../../repositories/reports'
 import { apiClient } from '../../axios'
 
 import TrendChart from '../../components/charts/Trend'
+import BarChart from '../../components/charts/Bar'
 
 const reportRepository = new ReportRepository(apiClient)
 
@@ -225,7 +226,8 @@ const today = new Date()
 export default {
   name: 'ReportIncomeStatement',
   components: {
-    TrendChart
+    TrendChart,
+    BarChart
   },
   data () {
     return {

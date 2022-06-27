@@ -38,6 +38,8 @@ class ReportIncomeStatementController {
       end
     } = dateRange
 
+    const todayInBase36 = Date.now().toString(36)
+
     const monetaryDonations = await MonetaryDonationModel.find({
       createdAt: {
         $gte: startOfDay(start),
@@ -55,9 +57,12 @@ class ReportIncomeStatementController {
         $gte: startOfDay(start),
         $lte: endOfDay(end)
       }
-    }, ['event', 'amount', 'createdAt'])
+    }, ['event', 'amount', 'createdAt'], {
+      populate: [{
+        path: 'event'
+      }]
+    })
 
-    const eventIdsSet = new Set()
     const incomeStatement = {
       labels: [],
       datasets: [{
@@ -68,6 +73,7 @@ class ReportIncomeStatementController {
         data: []
       }]
     }
+
     const expenses = {
       labels: [],
       datasets: [{
@@ -86,7 +92,7 @@ class ReportIncomeStatementController {
     }
 
     const dateIncomeStatementMap = new Map()
-    const dateExpensesMap = new Map()
+    const eventExpensesMap = new Map()
 
     for (const monetaryDonation of monetaryDonations) {
       const transactionDate = format(monetaryDonation.createdAt, 'MM/dd/yy')
@@ -123,11 +129,9 @@ class ReportIncomeStatementController {
     }
 
     for (const expense of eventExpenses) {
-      eventIdsSet.add(expense.event.toString())
+      const key = `${expense.event._id.toString()}:${todayInBase36}:${expense.event.name}`
 
-      const transactionDate = format(expense.createdAt, 'MM/dd/yy')
-
-      let expensesMap = dateExpensesMap.get(transactionDate)
+      let expensesMap = eventExpensesMap.get(key)
 
       if (expensesMap === undefined) {
         expensesMap = {
@@ -135,15 +139,16 @@ class ReportIncomeStatementController {
           totalActual: 0
         }
 
-        dateExpensesMap.set(transactionDate, expensesMap)
+        eventExpensesMap.set(key, expensesMap)
       }
 
       expensesMap.totalActual += expense.amount
     }
 
     const events = await EventModel.find({
-      _id: {
-        $in: Array.from(eventIdsSet)
+      'date.start': {
+        $gte: startOfDay(start),
+        $lte: endOfDay(end)
       },
       budget: {
         $exists: true
@@ -151,9 +156,9 @@ class ReportIncomeStatementController {
     })
 
     for (const event of events) {
-      const transactionDate = format(event.date.start, 'MM/dd/yy')
-
-      let expensesMap = dateExpensesMap.get(transactionDate)
+      const key = `${event._id.toString()}:${todayInBase36}:${event.name}`
+      
+      let expensesMap = eventExpensesMap.get(key)
 
       if (expensesMap === undefined) {
         expensesMap = {
@@ -161,7 +166,7 @@ class ReportIncomeStatementController {
           totalActual: 0
         }
 
-        dateExpensesMap.set(transactionDate, expensesMap)
+        eventExpensesMap.set(key, expensesMap)
       }
 
       let totalBudget = 0
@@ -187,8 +192,8 @@ class ReportIncomeStatementController {
 
     incomeStatement.labels = incomeStatement.labels.sort(sortByDate)
 
-    for (const [date, expenseMap] of dateExpensesMap.entries()) {
-      expenses.labels.push(date)
+    for (const [key, expenseMap] of eventExpensesMap.entries()) {
+      expenses.labels.push(key.split(`:${todayInBase36}:`)[1])
 
       const { 
         totalProposed,
