@@ -6,6 +6,7 @@ const Joi = require('joi')
 const EventEvaluationModel = require('../../models/events/evaluations')
 const EventVolunteerModel = require('../../models/events/volunteers')
 const EventModel = require('../../models/events')
+const EventQuestionModel = require('../../models/events/questions')
 const UserModel = require('../../models/users')
 
 const { STATUSES } = require('../../constants/events')
@@ -15,8 +16,12 @@ const {
   ConflictError
 } = require('../../errors')
 
-const polarQuestionValidation = Joi.number().integer().min(0).max(1)
-const matrixQuestionValidation = Joi.string().valid('Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied')
+const questionTypeValidators = {
+  polar: Joi.number().integer().min(0).max(1),
+  matrix: Joi.string().valid('Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied'),
+  'matrix:satisfied': Joi.string().valid('Very Satisfied', 'Satisfied', 'Neutral', 'Dissatisfied', 'Very Dissatisfied'),
+  'matrix:likely': Joi.string().valid('Very Likely', 'Likely', 'Neutral', 'Unlikely', 'Very Unlikely')
+}
 
 class EventEvaluationController {
   static async create(eventId, userId, evaluation) {
@@ -24,6 +29,7 @@ class EventEvaluationController {
       rating,
       comment,
       sdgAnswers,
+      universalQuestionnaireAnswers,
       questionnaireAnswers,
     } = evaluation
 
@@ -71,8 +77,9 @@ class EventEvaluationController {
       throw new NotFoundError(`User does not exist: ${userId}`)
     }
 
-    EventEvaluationController.validateEvaluationAnswers(event, {
+    await EventEvaluationController.validateEvaluationAnswers(event, {
       sdgAnswers,
+      universalQuestionnaireAnswers,
       questionnaireAnswers
     })
 
@@ -83,6 +90,7 @@ class EventEvaluationController {
         rating,
         comment,
         sdgAnswers,
+        universalQuestionnaireAnswers,
         questionnaireAnswers,
       })
 
@@ -118,9 +126,10 @@ class EventEvaluationController {
     }
   }
 
-  static validateEvaluationAnswers(event, evaluation) {
+  static async validateEvaluationAnswers(event, evaluation) {
     const {
       sdgAnswers,
+      universalQuestionnaireAnswers,
       questionnaireAnswers,
     } = evaluation
 
@@ -147,14 +156,16 @@ class EventEvaluationController {
           const sdgQuestion = sdg.questions[j]
           const answer = sdgAnswer[j]
 
-          if (sdgQuestion.type === 'polar') {
-            const { error } = polarQuestionValidation.validate(answer)
+          const questionValidator = questionTypeValidators[sdgQuestion.type]
 
-            if (error !== undefined) {
-              throw new ConflictError(`Invalid answer to SDG question: [${sdgQuestion.label}]:[${error.message}]`)
-            }
-          } else {
-            throw new ConflictError(`Unknown question type for evaluation sdg: [${sdgQuestion.type}]`)
+          if (questionValidator === undefined) {
+            throw new ConflictError('invalid_sdg_question_type')
+          }
+          
+          const { error } = questionValidator.validate(answer)
+
+          if (error !== undefined) {
+            throw new ConflictError('invalid_answer_to_sdg_question')
           }
         }
       }
@@ -177,18 +188,48 @@ class EventEvaluationController {
         const eventQuestion = event.questions[i]
         const answer = questionnaireAnswers[i]
 
-        if (eventQuestion.type === 'matrix') {
-          const { error } = matrixQuestionValidation.validate(answer)
+        const questionValidator = questionTypeValidators[eventQuestion.type]
 
-          if (error !== undefined) {
-            throw new ConflictError(`Invalid answer to question: [${eventQuestion.label}]:[${error.message}]`)
-          }
-        } else {
-          throw new ConflictError(`Unknown question type for evaluation questionnaire: [${eventQuestion.type}]`)
+        if (questionValidator === undefined) {
+          throw new ConflictError('invalid_question_type')
+        }
+
+        const { error } = questionValidator.validate(answer)
+
+        if (error !== undefined) {
+          throw new ConflictError('invalid_answer_to_question')
         }
       }
     } else if (questionnaireAnswers !== undefined) {
       throw new ConflictError('Answers were provided to evaluation questionnaire')
+    }
+
+    const universalQuestions = await EventQuestionModel.find()
+
+    if (universalQuestions.length === 0 && universalQuestionnaireAnswers.length > 0) {
+      throw new ConflictError('no_universal_questions')
+    } else if (universalQuestions.length > 0 && universalQuestionnaireAnswers.length === 0) {
+      throw new ConflictError('no_answers_for_universal_questions')
+    }
+
+    for (const { question, answer } of universalQuestionnaireAnswers) {
+      const universalQuestion = universalQuestions.find((universalQuestion) => universalQuestion.label === question.label)
+
+      if (universalQuestion === undefined) {
+        throw new ConflictError('invalid_universal_question')
+      }
+
+      const questionValidator = questionTypeValidators[universalQuestion.type]
+
+      if (questionValidator === undefined) {
+        throw new ConflictError('invalid_universal_question_type')
+      }
+
+      const { error } = questionValidator.validate(answer)
+      
+      if (error !== undefined) {
+        throw new ConflictError('invalid_answer_to_universal_question')
+      }
     }
   }
 

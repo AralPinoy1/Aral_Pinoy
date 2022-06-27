@@ -20,11 +20,16 @@ const schema = new mongoose.Schema({
       default: undefined
     }]
   },
+  universalQuestionnaireAnswers: {
+    type: [mongoose.Schema.Types.Mixed],
+    default: undefined
+  },
   questionnaireAnswers: {
     type: [mongoose.Schema.Types.Mixed],
     default: undefined
   }
 }, {
+  id: false,
   collection: 'eventEvaluations',
   validateBeforeSave: false,
 })

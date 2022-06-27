@@ -128,7 +128,7 @@
                 </div>
 
                 <b-container fluid>
-                  <b-row v-if="hasEventQuestions && questionnaireAnswers.length > 0">
+                  <b-row v-if="universalQuestions.results.length > 0 || questionnaireAnswers.length > 0">
                     <b-col cols="12">
                       <b-card class="mb-4">
                         <b-container fluid>
@@ -142,13 +142,13 @@
 
                           <b-row
                             v-for="(question, questionIndex) in event.questions"
-                            :key="questionIndex"
+                            :key="`question-${questionIndex}`"
                             style="text-align: left;"
                           >
                             <b-form-group
                               v-if="question.type === 'matrix'"
                               v-slot="{ ariaDescribedby }"
-                              :label="`${questionIndex + 1}. ${question.label}`"
+                              :label="question.label"
                             >
                               <b-col
                                 class="mb-3"
@@ -215,6 +215,24 @@
                                 </b-form-radio>
                               </b-col>
                             </b-form-group>
+                          </b-row>
+
+                          <b-row
+                            v-for="(question, questionIndex) in universalQuestions.results"
+                            :key="`universal-question-${questionIndex}`"
+                            class="my-5"
+                            style="text-align: left;"
+                          >
+                            <matrix-satisfied-question
+                              v-if="question.type === 'matrix:satisfied'"
+                              :question="question"
+                              @answer-updated="handleUniversalQuestionAnswer"
+                            />
+                            <matrix-likely-question
+                              v-else-if="question.type === 'matrix:likely'"
+                              :question="question"
+                              @answer-updated="handleUniversalQuestionAnswer"
+                            />
                           </b-row>
                         </b-container>
                       </b-card>
@@ -388,18 +406,34 @@
 import { mapGetters } from 'vuex'
 import _ from 'lodash'
 
-import Footer from '../../components/Footer.vue'
-const logo = require('../../assets/aralpinoywords.png')
+import Footer from '../../components/Footer'
+import MatrixSatisfiedQuestion from '../../components/event-evaluation/MatrixSatisfiedQuestion'
+import MatrixLikelyQuestion from '../../components/event-evaluation/MatrixLikelyQuestion'
 
-const { apiClient } = require('../../axios')
+import { apiClient } from '../../axios'
+import EventQuestionRepository from '../../repositories/events/questions'
+import EventEvaluationRepository from '../../repositories/events/evaluations'
+
+const logo = require('../../assets/aralpinoywords.png')
 
 export default {
   components: {
-    Footer
+    Footer,
+    MatrixSatisfiedQuestion,
+    MatrixLikelyQuestion
   },
   data () {
     return {
+      eventQuestionRepository: null,
+      eventEvaluationRepository: null,
       logo,
+      universalQuestions: {
+        results: [],
+        isLoading: false
+      },
+      answerMap: {
+        universal: new Map()
+      },
       isLoadingEvent: false,
       isLoadingEventVolunteer: false,
       event: null,
@@ -451,12 +485,20 @@ export default {
     }
   },
   async created () {
+    this.eventQuestionRepository = new EventQuestionRepository(apiClient, {
+      bearerToken: this.token
+    })
+    this.eventEvaluationRepository = new EventEvaluationRepository(apiClient, {
+      bearerToken: this.token
+    })
+
     await this.getEvent()
-    this.eventVolunteer = await this.getEventVolunteer()
 
     if (!this.doesEventExist) {
       return
     }
+
+    this.eventVolunteer = await this.getEventVolunteer()
 
     if (this.hasEventEvaluation) {
       return
@@ -469,6 +511,8 @@ export default {
     }
 
     this.formatForm()
+
+    await this.loadUniversalQuestions()
   },
   methods: {
     async getEvent () {
@@ -522,6 +566,25 @@ export default {
         this.isLoadingEventVolunteer = false
       }
     },
+    async loadUniversalQuestions () {
+      this.universalQuestions.isLoading = true
+
+      /** @type {EventQuestionRepository} */
+      const eventQuestionRepository = this.eventQuestionRepository
+
+      try {
+        const { results } = await eventQuestionRepository.list({
+          sort: {
+            field: 'label',
+            order: 'asc'
+          }
+        })
+
+        this.universalQuestions.results = results
+      } finally {
+        this.universalQuestions.isLoading = true
+      }
+    },
     formatForm () {
       if (this.hasEventSdgs) {
         for (const sdg of this.event.sdgs) {
@@ -537,6 +600,17 @@ export default {
         this.questionnaireAnswers.push(nullAnswers)
       }
     },
+    handleUniversalQuestionAnswer (update) {
+      const { question, answer } = update
+
+      /** @type {Map<string, Object>} */
+      const answerMap = this.answerMap.universal
+
+      answerMap.set(question.label, {
+        question,
+        answer
+      })
+    },
     async submitEventEvaluation () {
       this.isSubmittingEvaluation = true
 
@@ -545,6 +619,7 @@ export default {
 
       const prepayload = {
         sdgAnswers: undefined,
+        universalQuestionnaireAnswers: undefined,
         questionnaireAnswers: undefined,
         comment: this.comment
       }
@@ -553,27 +628,28 @@ export default {
         prepayload.sdgAnswers = this.sdgAnswers
       }
 
+      if (this.answerMap.universal.size > 0) {
+        prepayload.universalQuestionnaireAnswers = Array.from(this.answerMap.universal.values())
+      }
+
       if (this.questionnaireAnswers.length > 0) {
         prepayload.questionnaireAnswers = this.questionnaireAnswers
       }
 
       const evaluation = _.pickBy(prepayload, _.identity)
 
+      /** @type {EventEvaluationRepository} */
+      const eventEvaluationRepository = this.eventEvaluationRepository
+
       try {
-        await apiClient.post('/event-evaluations', {
+        await eventEvaluationRepository.create({
           userId,
           eventId,
           evaluation
-        }, {
-          headers: {
-            Authorization: `Bearer ${this.token}`
-          }
         })
 
         this.$router.go()
       } catch (error) {
-        console.log(error)
-
         this.isSubmittingEvaluation = false
       }
     }

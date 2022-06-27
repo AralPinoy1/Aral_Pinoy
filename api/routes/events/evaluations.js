@@ -18,6 +18,7 @@ const createValidator = Joi.object({
     sdgAnswers: Joi.array().items(
       Joi.array().items(Joi.any())
     ),
+    universalQuestionnaireAnswers: Joi.array().items(Joi.any()),
     questionnaireAnswers: Joi.array().items(Joi.any())
   }).required()
 }).options({ 
