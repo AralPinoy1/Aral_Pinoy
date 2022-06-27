@@ -8,19 +8,40 @@ const logger = debug('api:server')
 
 const eventQuestions = [
   {
-    label: 'How satisfied were you on the event in meeting your expectation?',
-    norm: 'how satisfied were you on the event in meeting your expectation?',
-    type: 'matrix:satisfied'
+    label: 'How satisfied were you with the event in meeting your expectations?',
+    norm: 'how satisfied were you on the event in meeting your expectations?',
+    type: 'matrix:satisfied',
+    eventTypes: [
+      'Coastal Cleanup',
+      'Tree Planting',
+      'Feeding Event',
+      'Tutoring Event',
+      'Donation Drive',
+    ]
   },
   {
     label: 'How likely are you to join another event in the future?',
     norm: 'how likely are you to join another event in the future?',
-    type: 'matrix:likely'
+    type: 'matrix:likely',
+    eventTypes: [
+      'Coastal Cleanup',
+      'Tree Planting',
+      'Feeding Event',
+      'Tutoring Event',
+      'Donation Drive',
+    ]
   },
   {
     label: 'How likely are you to recommend a friend to join Aral Pinoy events?',
     norm: 'how likely are you to recommend a friend to join aral pinoy events?',
-    type: 'matrix:likely'
+    type: 'matrix:likely',
+    eventTypes: [
+      'Coastal Cleanup',
+      'Tree Planting',
+      'Feeding Event',
+      'Tutoring Event',
+      'Donation Drive',
+    ]
   },
 ]
 

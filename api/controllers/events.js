@@ -69,6 +69,7 @@ class EventsController {
   static async create(event) {
     const {
       name,
+      type,
       description,
       date,
       goals,
@@ -257,6 +258,7 @@ class EventsController {
     const results = await EventModel.create({
       _id: eventId,
       name: sanitizedName,
+      type,
       description,
       date,
       location,

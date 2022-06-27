@@ -60,6 +60,7 @@ const budgetSchema = Joi.object({
 
 const createEventValidator = Joi.object({
   name: Joi.string().trim().max(100).required(),
+  type: Joi.string().trim().required(),
   description: Joi.string().trim().empty('').max(5000),
   date: Joi.object({
     start: Joi.date().iso().required(),

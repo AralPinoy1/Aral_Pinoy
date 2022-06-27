@@ -56,6 +56,34 @@
                             </b-row>
 
                             <b-row>
+                              <b-form-group class="pt-2  text-start">
+                                <label
+                                  class="py-1"
+                                  for="select-event-type"
+                                  style="font-family: 'Bebas Neue', cursive;"
+                                >
+                                  Event Type:
+                                </label>
+
+                                <b-col>
+                                  <select
+                                    id="select-event-type"
+                                    v-model="event.type"
+                                    class="form-select"
+                                  >
+                                    <option
+                                      v-for="type in eventTypeOptions"
+                                      :key="type.label"
+                                      :value="type.label"
+                                    >
+                                      {{ type.label }}
+                                    </option>
+                                  </select>
+                                </b-col>
+                              </b-form-group>
+                            </b-row>
+
+                            <b-row>
                               <b-col cols="12">
                                 <b-form-group class="pt-2 text-start">
                                   <label
@@ -1160,9 +1188,11 @@ import {
   isSameDay
 } from 'date-fns'
 
-import EventTemplateRepository from '../../repositories/events/templates'
 import formatterMixins from '../../mixins/formatters'
+
 import { apiClient } from '../../axios'
+import EventTemplateRepository from '../../repositories/events/templates'
+import EventTypeRepository from '../../repositories/events/types'
 
 const eventTemplateRepository = new EventTemplateRepository(apiClient)
 const today = new Date()
@@ -1188,6 +1218,7 @@ export default ({
   ],
   data () {
     return {
+      eventTypeRepository: null,
       isFetchingTemplate: false,
       isUrgentEvent: false,
       minStartDate: nextMonth,
@@ -1201,6 +1232,7 @@ export default ({
       },
       event: {
         name: '',
+        type: '',
         description: '',
         location: {
           name: ''
@@ -1237,6 +1269,7 @@ export default ({
       roles: [],
       search: '',
       value: [],
+      eventTypeOptions: [],
       sdgOptions: [],
       ikdFields: [
         { key: 'name', label: 'Item' },
@@ -1358,7 +1391,13 @@ export default ({
     }
   },
   async created () {
+    this.eventTypeRepository = new EventTypeRepository(apiClient, {
+      bearerToken: this.token
+    })
+
     eventTemplateRepository.setAuthorizationHeader(`Bearer ${this.token}`)
+
+    await this.loadEventTypes()
 
     await this.fetchAndLoadTemplate()
     await this.getSdgs()
@@ -1400,6 +1439,22 @@ export default ({
         this.isFetchingTemplate = false
       }
     },
+    async loadEventTypes () {
+      /** @type {EventTypeRepository} */
+      const eventTypeRepository = this.eventTypeRepository
+
+      const { results } = await eventTypeRepository.list({
+        sort: {
+          field: 'label',
+          order: 'asc'
+        }
+      })
+
+      if (results.length > 0) {
+        this.eventTypeOptions = results
+        this.event.type = results[0].label
+      }
+    },
     getValidationState ({ dirty, validated, valid = null }) {
       return dirty || validated ? valid : null
     },
@@ -1409,6 +1464,7 @@ export default ({
       const form = new FormData()
 
       form.set('name', event.name)
+      form.set('type', event.type)
       form.set('description', event.description)
       form.set('location[name]', event.location.name)
       form.set('date[start]', new Date(event.date.start).toISOString())

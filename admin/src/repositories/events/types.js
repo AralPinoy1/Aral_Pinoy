@@ -2,9 +2,9 @@
 
 /** @typedef {import('axios').Axios} Axios */
 
-const REPOSITORY_BASE_URL = '/event-questions'
+const REPOSITORY_BASE_URL = '/event-types'
 
-class EventQuestionRepository {
+class EventTypeRepository {
   /**
    *
    * @param {Axios} apiClient
@@ -27,8 +27,6 @@ class EventQuestionRepository {
   /**
    *
    * @param {Object} [options={}] Options
-   * @param {Object} [options.filters={}] Filter options
-   * @param {string[]} [options.filters.eventTypes] Filter by event types
    * @param {Object} [options.sort={}] Sort options
    * @param {string} options.sort.field Field to sort
    * @param {string} options.sort.order Order of sort
@@ -36,17 +34,10 @@ class EventQuestionRepository {
    */
   async list (options = {}) {
     const {
-      filters = {},
       sort = {}
     } = options
 
     const queryString = new URLSearchParams()
-
-    if (Array.isArray(filters.eventTypes)) {
-      for (const eventType of filters.eventTypes) {
-        queryString.append('filters.eventTypes[]', eventType)
-      }
-    }
 
     if (sort.field !== undefined && sort.order !== undefined) {
       queryString.set('sort.field', sort.field)
@@ -63,4 +54,4 @@ class EventQuestionRepository {
   }
 }
 
-module.exports = EventQuestionRepository
+module.exports = EventTypeRepository

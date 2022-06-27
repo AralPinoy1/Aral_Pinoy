@@ -55,7 +55,6 @@
                         v-for="eventQuestion in eventQuestions"
                         :key="eventQuestion._id"
                         class="flex-column align-items-start"
-                        to="#"
                         style="text-align: left"
                       >
                         <div class="d-flex w-100 justify-content-between">
@@ -68,6 +67,10 @@
 
                             <p class="mb-1 text-secondary">
                               {{ getEventQuestionTypeLabel(eventQuestion.type) }}
+                            </p>
+
+                            <p class="mb-1 text-secondary">
+                              Events - {{ getEventTypesLabel(eventQuestion.eventTypes) }}
                             </p>
                           </div>
 
@@ -160,6 +163,52 @@
               </b-col>
             </b-row>
 
+            <b-row class="my-1">
+              <label
+                for="multiple-select-event-event-type"
+              >
+                Event Type
+              </label>
+
+              <b-col>
+                <b-form-tags>
+                  <template>
+                    <ul
+                      class="list-inline d-inline-block mb-2"
+                    >
+                      <li
+                        v-for="(type, index) in createModal.form.eventTypes"
+                        :key="type._id"
+                        class="list-inline-item"
+                      >
+                        <b-form-tag
+                          class="bg-success"
+                          @remove="removeEventType(index)"
+                        >
+                          {{ type.label }}
+                        </b-form-tag>
+                      </li>
+                    </ul>
+                  </template>
+
+                  <b-dropdown
+                    text="Add Event Type"
+                    style="width: 100%"
+                    menu-class="w-100"
+                    variant="primary"
+                  >
+                    <b-dropdown-item
+                      v-for="type in createModal.eventTypeOptions"
+                      :key="type._id"
+                      @click="selectEventType(type)"
+                    >
+                      {{ type.label }}
+                    </b-dropdown-item>
+                  </b-dropdown>
+                </b-form-tags>
+              </b-col>
+            </b-row>
+
             <b-button
               pill
               variant="danger"
@@ -196,6 +245,7 @@ import { required, max } from 'vee-validate/dist/rules'
 import validationMixins from '../../../mixins/validation'
 
 import EventQuestionRepository from '../../../repositories/events/questions'
+import EventTypeRepository from '../../../repositories/events/types'
 import { apiClient } from '../../../axios'
 
 extend('required', {
@@ -226,6 +276,7 @@ export default {
   ],
   data () {
     return {
+      eventTypeRepository: null,
       isFetchingEventQuestions: false,
       eventQuestions: [],
       eventQuestionTypes: [
@@ -247,8 +298,10 @@ export default {
         isCreating: false,
         form: {
           label: '',
-          type: ''
-        }
+          type: '',
+          eventTypes: []
+        },
+        eventTypeOptions: []
       },
       deleteModal: {
         eventQuestionIdToDelete: null,
@@ -260,12 +313,25 @@ export default {
   computed: {
     ...mapGetters(['token'])
   },
-  created () {
+  async created () {
+    this.eventTypeRepository = new EventTypeRepository(apiClient, {
+      bearerToken: this.token
+    })
+
     eventQuestionRepository.setAuthorizationHeader(`Bearer ${this.token}`)
 
-    this.getEventQuestions()
+    await this.loadEventTypes()
+    await this.getEventQuestions()
   },
   methods: {
+    async loadEventTypes () {
+      /** @type {EventTypeRepository} */
+      const eventTypeRepository = this.eventTypeRepository
+
+      const { results } = await eventTypeRepository.list()
+
+      this.createModal.eventTypeOptions = results
+    },
     async getEventQuestions () {
       const { results } = await eventQuestionRepository.list()
 
@@ -275,6 +341,13 @@ export default {
       const label = EVENT_QUESTION_TYPE_LABEL[type]
 
       return label !== undefined ? label : ''
+    },
+    getEventTypesLabel (eventTypes) {
+      if (eventTypes.length === 0) {
+        return 'None'
+      }
+
+      return eventTypes.join(', ')
     },
     showEventQuestionModal () {
       this.createModal.show = true
@@ -286,14 +359,16 @@ export default {
     async addEventQuestion () {
       const {
         label,
-        type
+        type,
+        eventTypes
       } = this.createModal.form
 
       this.createModal.isCreating = true
 
       await eventQuestionRepository.create({
         label,
-        type
+        type,
+        eventTypes: eventTypes.map((eventType) => eventType.label)
       })
 
       this.$router.go()
@@ -310,6 +385,23 @@ export default {
       await eventQuestionRepository.deleteEventQuestion(this.deleteModal.eventQuestionIdToDelete)
 
       this.$router.go()
+    },
+    selectEventType (eventType) {
+      const eventTypes = this.createModal.form.eventTypes
+      console.log(eventTypes)
+
+      for (const existingType of eventTypes) {
+        if (existingType._id === eventType._id) {
+          return
+        }
+      }
+
+      eventTypes.push(eventType)
+    },
+    removeEventType (index) {
+      const eventTypes = this.createModal.form.eventTypes
+
+      eventTypes.splice(index, 1)
     }
   }
 }

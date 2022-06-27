@@ -574,6 +574,9 @@ export default {
 
       try {
         const { results } = await eventQuestionRepository.list({
+          filters: {
+            eventTypes: [this.event.type]
+          },
           sort: {
             field: 'label',
             order: 'asc'

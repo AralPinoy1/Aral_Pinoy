@@ -8,16 +8,9 @@ const schema = new mongoose.Schema({
     type: String,
     unique: true,
     select: false
-  },
-  type: {
-    type: String
-  },
-  eventTypes: {
-    type: [String],
-    default: []
   }
 }, {
-  collection: 'eventQuestions',
+  collection: 'eventTypes',
   id: false,
   validateBeforeSave: false,
   toObject: {
@@ -28,4 +21,4 @@ const schema = new mongoose.Schema({
   }
 })
 
-module.exports = mongoose.model('EventQuestion', schema)
+module.exports = mongoose.model('EventType', schema)

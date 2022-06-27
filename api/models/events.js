@@ -125,6 +125,9 @@ const schema = new mongoose.Schema({
     type: String,
     text: true
   },
+  type: {
+    type: String
+  },
   description: String,
   status: {
     type: String,

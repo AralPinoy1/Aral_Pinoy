@@ -28,14 +28,16 @@ class EventQuestionController {
   static async create(eventQuestion) {
     const {
       label,
-      type
+      type,
+      eventTypes
     } = eventQuestion
 
     /** @type {Document} */
     const result = await EventQuestionModel.create({
       label,
       norm: sanitize(label),
-      type
+      type,
+      eventTypes
     })
 
     return result.toObject({
@@ -47,6 +49,8 @@ class EventQuestionController {
 
   /**
    * @param {Object} [options={}]
+   * @param {Object} [options.filters]
+   * @param {string[]} [options.filters.eventTypes]
    * @param {Object} [options.sort]
    * @param {string} options.sort.field
    * @param {string} options.sort.order
@@ -54,20 +58,34 @@ class EventQuestionController {
    */
   static async list(options = {}) {
     const {
-      sort
+      filters,
+      sort: {
+        field: sortField,
+        order: sortOrder
+      }
     } = options
 
-    const queryOptions = {}
+    const matchQuery = {}
 
-    if (sort !== undefined) {
-      const { field, order } = sort
+    if (filters !== undefined) {
+      const { eventTypes } = filters
 
-      queryOptions.sort = {
-        [field]: SORT_ORDER_MAPPING[order]
+      if (Array.isArray(eventTypes) && eventTypes.length > 0) {
+        matchQuery.eventTypes = {
+          $in: eventTypes
+        }
       }
     }
 
-    const eventQuestions = await EventQuestionModel.find(undefined, undefined, queryOptions)
+    const queryOptions = {}
+
+    if (sortField !== undefined && sortOrder !== undefined ) {
+      queryOptions.sort = {
+        [sortField]: SORT_ORDER_MAPPING[sortOrder]
+      }
+    }
+
+    const eventQuestions = await EventQuestionModel.find(matchQuery, undefined, queryOptions)
 
     return {
       results: eventQuestions
