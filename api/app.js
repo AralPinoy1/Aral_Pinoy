@@ -42,6 +42,8 @@ const ikdOrganizationsRouter = require('./routes/inkind-donations/organizations'
 const ikdTransactionsRouter = require('./routes/inkind-donations/transactions')
 const ikdOutboundTransactionsRouter = require('./routes/inkind-donations/outbound-transactions')
 
+const ledgerTransactionsRouter = require('./routes/ledger/transactions')
+
 const notificationsRouter = require('./routes/notifications')
 
 const formTemplatesStaticRouter = require('./routes/form-templates/static')
@@ -146,6 +148,8 @@ app.use('/inkind-donation-groups', ikdGroupsRouter)
 app.use('/inkind-donation-organizations', ikdOrganizationsRouter)
 app.use('/inkind-donation-transactions', ikdTransactionsRouter)
 app.use('/inkind-donation-outbound-transactions', ikdOutboundTransactionsRouter)
+
+app.use('/ledger-transactions', ledgerTransactionsRouter)
 
 app.use('/notifications', notificationsRouter)
 

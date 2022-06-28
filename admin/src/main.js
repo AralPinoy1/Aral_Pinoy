@@ -79,6 +79,9 @@ import Forms from './pages/Forms'
 // /event-questions
 import EventQuestionList from './pages/events/questions/EventQuestionList'
 
+// /ledger-transactions
+import LedgerTransactionList from './pages/ledger/LedgerTransactionList'
+
 import { apiClient } from './axios'
 import vuexStore from './store'
 
@@ -393,6 +396,15 @@ const routes = [
   {
     path: '/event-questions',
     component: EventQuestionList,
+    meta: {
+      requiresAuth: true
+    }
+  },
+
+  // /ledger-transactions
+  {
+    path: '/ledger-transactions',
+    component: LedgerTransactionList,
     meta: {
       requiresAuth: true
     }

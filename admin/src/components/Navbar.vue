@@ -73,6 +73,16 @@
 
       <b-navbar-nav>
         <b-nav-item
+          to="/ledger-transactions"
+          style="margin-left: 18px;"
+          class="volunteers"
+        >
+          Withdrawals
+        </b-nav-item>
+      </b-navbar-nav>
+
+      <b-navbar-nav>
+        <b-nav-item
           to="/expenses"
           style="margin-left: 18px;"
           class="volunteers"

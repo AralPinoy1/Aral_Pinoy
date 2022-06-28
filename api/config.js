@@ -114,7 +114,8 @@ module.exports = {
       storage: {
         bucketNames: {
           events: NODE_ENV + '_aral-pinoy-events',
-          inkindDonationReceipts: NODE_ENV + '_aral-pinoy-inkind-donation-receipts'
+          inkindDonationReceipts: NODE_ENV + '_aral-pinoy-inkind-donation-receipts',
+          ledgerTransactionReceipts: NODE_ENV + '_aral-pinoy-ledger-transaction-receipts',
         }
       }
     }
