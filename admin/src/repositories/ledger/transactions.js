@@ -88,6 +88,10 @@ class LedgerTransactionRepository {
     form.set('amount', amount)
     form.set('date', date)
 
+    if (metadata.eventId !== undefined) {
+      form.set('metadata[eventId]', metadata.eventId)
+    }
+
     if (metadata.receipt !== undefined && metadata.receipt !== null) {
       form.set('receipt', metadata.receipt)
     }

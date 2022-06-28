@@ -119,6 +119,46 @@
             </b-col>
           </b-row>
 
+          <b-row class="pt-3">
+            <b-col cols="12">
+              <label for="search-ledger-transaction-metadata-event">
+                Event
+              </label>
+
+              <b-dropdown
+                :text="form.metadata.event ? form.metadata.event.name : 'Select an event'"
+                style="width: 100%"
+                menu-class="w-100"
+                variant="outline-primary"
+                :no-caret="!!form.metadata.event"
+                no-flip
+              >
+                <b-dropdown-form>
+                  <b-form-group
+                    label="Search Event"
+                    @submit.stop.prevent
+                  >
+                    <b-form-input
+                      id="search-ledger-transaction-metadata-event"
+                      debounce="500"
+                      @update="searchEventNames"
+                    />
+                  </b-form-group>
+                </b-dropdown-form>
+
+                <b-dropdown-divider />
+
+                <b-dropdown-item
+                  v-for="event in eventOptions"
+                  :key="event._id"
+                  @click="form.metadata.event = event"
+                >
+                  {{ event.name }}
+                </b-dropdown-item>
+              </b-dropdown>
+            </b-col>
+          </b-row>
+
           <b-row
             class="pt-3"
           >
@@ -178,8 +218,11 @@ import { set as setDate } from 'date-fns'
 
 import { apiClient } from '../../axios'
 import LedgerTransactionRepository from '../../repositories/ledger/transactions'
+import EventRepository from '../../repositories/events'
 
 import formattersMixin from '../../mixins/formatters'
+
+const eventRepository = new EventRepository(apiClient)
 
 export default {
   name: 'CreateLedgerTransactionModal',
@@ -203,6 +246,9 @@ export default {
         amount: 1,
         date: new Date(),
         time: '00:00:00',
+        metadata: {
+          event: null
+        },
         file: null
       },
       transactionTypeOptions: [
@@ -211,6 +257,7 @@ export default {
           value: 'WITHDRAWAL'
         }
       ],
+      eventOptions: [],
       errorMessage: ''
     }
   },
@@ -226,6 +273,8 @@ export default {
     this.ledgerTransactionRepository = new LedgerTransactionRepository(apiClient, {
       bearerToken: this.token
     })
+
+    eventRepository.setAuthorizationHeader(`Bearer ${this.token}`)
   },
   methods: {
     async createLedgerTransaction () {
@@ -237,6 +286,9 @@ export default {
         amount,
         date,
         time,
+        metadata: {
+          event
+        },
         file
       } = this.form
 
@@ -251,20 +303,41 @@ export default {
       /** @type {LedgerTransactionRepository} */
       const ledgerTransactionRepository = this.ledgerTransactionRepository
 
+      const metadata = {
+        eventId: undefined,
+        receipt: file
+      }
+
+      if (event) {
+        metadata.eventId = event._id
+      }
+
       try {
         await ledgerTransactionRepository.create({
           type,
           amount: this.fromCurrencyToNumber(amount),
           date: new Date(transactionDate).toJSON(),
-          metadata: {
-            receipt: file
-          }
+          metadata
         })
 
         this.$router.go()
       } catch (error) {
         this.isLoading = false
       }
+    },
+    async searchEventNames (value) {
+      const { results } = await eventRepository.list({
+        name: value
+      }, {
+        limit: 10,
+        offset: 0,
+        sort: {
+          field: 'name',
+          order: 'asc'
+        }
+      })
+
+      this.eventOptions = results
     },
     handleFileUpload (event) {
       const files = event.target.files
