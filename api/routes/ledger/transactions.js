@@ -20,6 +20,7 @@ const upload = multer({
 const createValidator = Joi.object({
   type: Joi.string().valid(TRANSACTION_TYPES.WITHDRAWAL).required(),
   amount: Joi.number().min(0).precision(2).required(),
+  date: Joi.date().iso().required(),
   metadata: Joi.object({
     eventId: Joi.objectId(),
   })
@@ -47,6 +48,7 @@ async function create(req, res, next) {
   const {
     type,
     amount,
+    date,
     metadata = {}
   } = req.body
 
@@ -54,6 +56,7 @@ async function create(req, res, next) {
     const results = await LedgerTransactionController.create({
       type,
       amount,
+      date: new Date(date),
       metadata: {
         eventId: metadata.eventId,
         receipt: req.file 

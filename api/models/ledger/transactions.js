@@ -21,6 +21,7 @@ const schema = new mongoose.Schema({
     get: getAmount,
     set: setAmount
   },
+  date: Date,
   metadata: {
     event: {
       type: mongoose.Types.ObjectId,

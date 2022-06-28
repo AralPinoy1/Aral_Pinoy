@@ -65,6 +65,42 @@ class LedgerTransactionRepository {
       total: data.total
     }
   }
+
+  /**
+   * @param {Object} payload Payload
+   * @param {string} payload.type Type of ledger transaction
+   * @param {number} payload.amount Ledger transaction amount
+   * @param {Object} payload.metadata Ledger transaction metadata
+   * @param {File} payload.metadata.receipt Ledger transaction receipt file
+   * @returns
+   */
+  async create (payload) {
+    const {
+      type,
+      amount,
+      date,
+      metadata
+    } = payload
+
+    const form = new FormData()
+
+    form.set('type', type)
+    form.set('amount', amount)
+    form.set('date', date)
+
+    if (metadata.receipt !== undefined && metadata.receipt !== null) {
+      form.set('receipt', metadata.receipt)
+    }
+
+    const { data } = await this.apiClient.post(REPOSITORY_BASE_URL, form, {
+      headers: {
+        ...this.headers,
+        'Content-Type': 'multipart/form-data'
+      }
+    })
+
+    return data
+  }
 }
 
 module.exports = LedgerTransactionRepository

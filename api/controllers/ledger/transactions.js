@@ -36,6 +36,7 @@ class LedgerTransactionController {
    * @param {Object} transaction
    * @param {string} transaction.type 
    * @param {number} transaction.amount
+   * @param {Date} transaction.date
    * @param {Object} transaction.metadata
    * @param {string} transaction.metadata.eventId
    * @param {File} transaction.metadata.receipt
@@ -45,6 +46,7 @@ class LedgerTransactionController {
     const {
       type,
       amount,
+      date,
       metadata
     } = transaction
 
@@ -75,6 +77,7 @@ class LedgerTransactionController {
     const result = await LedgerTransactionModel.create({
       _id: transactionId,
       type,
+      date,
       status: TRANSACTION_STATUSES.COMPLETED,
       amount,
       metadata: transactionMetadata

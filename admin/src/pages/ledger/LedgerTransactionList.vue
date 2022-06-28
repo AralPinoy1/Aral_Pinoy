@@ -89,7 +89,18 @@
                         </template>
 
                         <template #cell(createdAt)="{ value }">
-                          <span v-if="value !== undefined && value !== ''">
+                          <span>
+                            {{
+                              new Date(value).toLocaleString('en-us', {
+                                dateStyle: 'medium',
+                                timeStyle: 'short'
+                              })
+                            }}
+                          </span>
+                        </template>
+
+                        <template #cell(date)="{ value }">
+                          <span>
                             {{
                               new Date(value).toLocaleString('en-us', {
                                 dateStyle: 'medium',
@@ -137,6 +148,24 @@
                       />
                     </b-col>
                   </b-row>
+
+                  <b-row
+                    class="pt-4"
+                    align-h="end"
+                  >
+                    <b-col
+                      cols="2"
+                      class="my-1"
+                    >
+                      <button
+                        class="btn btn-danger"
+                        type="button"
+                        @click="createLedgerTransactionModal.show = true"
+                      >
+                        Add Transaction
+                      </button>
+                    </b-col>
+                  </b-row>
                 </b-col>
               </b-row>
             </b-container>
@@ -144,11 +173,18 @@
         </b-col>
       </b-row>
     </b-container>
+
+    <create-ledger-transaction-modal
+      :show="createLedgerTransactionModal.show"
+      @close="createLedgerTransactionModal.show = false"
+    />
   </div>
 </template>
 
 <script>
 import { mapGetters } from 'vuex'
+
+import CreateLedgerTransactionModal from '../../components/ledger/CreateLedgerTransactionModal'
 
 import { apiClient } from '../../axios'
 import LedgerTransactionRepository from '../../repositories/ledger/transactions'
@@ -156,12 +192,16 @@ import LedgerTransactionRepository from '../../repositories/ledger/transactions'
 const logo = require('../../assets/aralpinoywords.png')
 
 const LEDGER_TRANSACTION_SORT_MAPPING = {
+  date: 'date',
   createdAt: 'createdAt',
   amount: 'amount'
 }
 
 export default {
   name: 'LedgerTransactionList',
+  components: {
+    CreateLedgerTransactionModal
+  },
   data () {
     return {
       ledgerTransactionRepository: null,
@@ -175,11 +215,15 @@ export default {
           currentPage: 1
         },
         fields: [
-          { key: 'createdAt', label: 'Transaction Date & Time', sortable: true },
+          { key: 'date', label: 'Transaction Date & Time', sortable: true },
           { key: 'amount', label: 'Amount', sortable: true },
           { key: 'event', label: 'Event' },
+          { key: 'createdAt', label: 'Date of Creation', sortable: true },
           { key: 'actions', label: 'Actions' }
         ]
+      },
+      createLedgerTransactionModal: {
+        show: false
       }
     }
   },
