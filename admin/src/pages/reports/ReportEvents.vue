@@ -86,6 +86,58 @@
         v-if="!isGeneratingReport"
         class="pb-3"
       >
+        <b-col
+          class="pb-3"
+          cols="12"
+        >
+          <b-card
+            bg-variant="light"
+            style="border-radius: 20px;"
+          >
+            <b-container
+              fluid
+            >
+              <b-row
+                class="py-2"
+              >
+                <b-col cols="12">
+                  <h1 style="font-family:'Bebas Neue', cursive;">
+                    Event Evaluations
+                  </h1>
+                </b-col>
+
+                <b-col
+                  v-for="(eventEvaluation, index) in eventEvaluationCharts"
+                  :key="index"
+                  class="pb-5 d-flex w-100 justify-content-center"
+                  cols="12"
+                >
+                  <bar-chart
+                    :height="450"
+                    :width="600"
+                    :chart-data="{
+                      labels: eventEvaluation.labels,
+                      datasets: eventEvaluation.datasets
+                    }"
+                    :options="{
+                      scales: {
+                        yAxes: {
+                          ticks: {
+                            min: 0,
+                            beginAtZero: true,
+                            precision: 0
+                          }
+                        }
+                      },
+                      responsive: true,
+                    }"
+                  />
+                </b-col>
+              </b-row>
+            </b-container>
+          </b-card>
+        </b-col>
+
         <b-col cols="12">
           <b-card
             bg-variant="light"
@@ -137,24 +189,81 @@ import { mapGetters } from 'vuex'
 import ReportRepository from '../../repositories/reports'
 import { apiClient } from '../../axios'
 
+import BarChart from '../../components/charts/Bar'
+
 const reportRepository = new ReportRepository(apiClient)
 
 const today = new Date()
 
+const successColor = '#198754'
+
+const polarQuestionColors = {
+  1: successColor,
+  0: '#9c2531'
+}
+
+const matrixQuestionColors = {
+  'Very Satisfied': successColor,
+  'Very Likely': successColor,
+  Satisfied: '#16786e',
+  Likely: '#16786e',
+  Neutral: '#b8b8b8',
+  Dissatisfied: '#dc3545',
+  Unlikely: '#16786e',
+  'Very Dissatisfied': '#9c2531',
+  'Very Unlikely': '#9c2531'
+}
+
 export default {
   name: 'ReportEvents',
+  components: {
+    BarChart
+  },
   data () {
     return {
       startDate: today,
       endDate: today,
       isGeneratingReport: false,
       report: {
-        events: []
+        events: [],
+        eventEvaluations: []
       }
     }
   },
   computed: {
-    ...mapGetters(['token'])
+    ...mapGetters(['token']),
+    eventEvaluationCharts () {
+      const eventEvaluations = this.report.eventEvaluations
+
+      if (eventEvaluations.length === 0) {
+        return []
+      }
+
+      const charts = []
+
+      for (const { labels, datasets } of eventEvaluations) {
+        const coloredDatasets = []
+
+        for (let i = 0; i < datasets.length; i++) {
+          const dataset = datasets[i]
+
+          const backgroundColor = polarQuestionColors[dataset.label] || matrixQuestionColors[dataset.label]
+
+          coloredDatasets.push({
+            label: dataset.label,
+            data: dataset.data,
+            backgroundColor: backgroundColor
+          })
+        }
+
+        charts.push({
+          labels,
+          datasets: coloredDatasets
+        })
+      }
+
+      return charts
+    }
   },
   watch: {
     endDate (value) {
@@ -182,7 +291,8 @@ export default {
           end: endDate
         })
 
-        this.report.events = results
+        this.report.events = results.events
+        this.report.eventEvaluations = results.eventEvaluations
       } finally {
         this.isGeneratingReport = false
       }
