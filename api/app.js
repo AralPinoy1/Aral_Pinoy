@@ -33,6 +33,7 @@ const eventTemplatesRouter = require('./routes/events/templates')
 const eventDocumentationsRouter = require('./routes/events/documentations')
 const eventQuestionsRouter = require('./routes/events/questions')
 const eventTypesRouter = require('./routes/events/types')
+const eventFormsRouter = require('./routes/events/forms')
 
 const inkindDonationsRouter = require('./routes/inkind-donations')
 const ikdCategoriesRouter = require('./routes/inkind-donations/categories')
@@ -101,7 +102,7 @@ const publicRoutes = [
   {
     url: /^\/form-templates\/static\/*/,
     methods: ['GET']
-  },
+  }
 ]
 
 const app = express()
@@ -140,6 +141,7 @@ app.use('/event-templates', eventTemplatesRouter)
 app.use('/event-documentations', eventDocumentationsRouter)
 app.use('/event-questions', eventQuestionsRouter)
 app.use('/event-types', eventTypesRouter)
+app.use('/event-forms', eventFormsRouter)
 
 app.use('/inkind-donations', inkindDonationsRouter)
 app.use('/inkind-donation-categories', ikdCategoriesRouter)
