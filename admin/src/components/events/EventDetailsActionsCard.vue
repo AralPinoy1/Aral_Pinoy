@@ -26,9 +26,85 @@
                 <button
                   class="btn btn-danger"
                   type="button"
+                  style="width: 10%"
                   @click="showVolunteerInvitationModal"
                 >
                   Invite
+                </button>
+              </div>
+            </b-list-group-item>
+
+            <b-list-group-item
+              v-if="Array.isArray(event.ikds) && event.ikds.length > 0"
+              class="mb-4 flex-column align-items-start"
+            >
+              <div class="d-flex w-100 justify-content-between">
+                <div>
+                  <h5 class="mb-1">
+                    Inventory Checklist Form
+                  </h5>
+
+                  <p class="mb-1">
+                    Download the form for the inventory item checklist.
+                  </p>
+                </div>
+
+                <button
+                  class="btn btn-danger"
+                  type="button"
+                  style="width: 10%"
+                  @click="downloadInventoryListForm"
+                >
+                  Download
+                </button>
+              </div>
+            </b-list-group-item>
+
+            <b-list-group-item class="mb-4 flex-column align-items-start">
+              <div class="d-flex w-100 justify-content-between">
+                <div>
+                  <h5 class="mb-1">
+                    Expense Breakdown Form
+                  </h5>
+
+                  <p class="mb-1">
+                    Download the form for listing the event expense breakdown.
+                  </p>
+                </div>
+
+                <button
+                  class="btn btn-danger"
+                  type="button"
+                  style="width: 10%"
+                  @click="downloadExpenseBreakdownForm"
+                >
+                  Download
+                </button>
+              </div>
+            </b-list-group-item>
+
+            <b-list-group-item
+              v-if="event.goals.numVolunteers.current > 0"
+              class="mb-4 flex-column align-items-start"
+            >
+              <div class="d-flex w-100 justify-content-between">
+                <div>
+                  <h5 class="mb-1">
+                    Volunteer Attendance Form
+                  </h5>
+
+                  <p class="mb-1">
+                    Download the form for checking the volunteer attendance.
+                  </p>
+                </div>
+
+                <button
+                  class="btn btn-danger"
+                  type="button"
+                  style="width: 10%"
+                  @click="downloadVolunteerAttendanceForm"
+                >
+                  Download
                 </button>
               </div>
             </b-list-group-item>
@@ -394,11 +470,22 @@ import EventRepository from '../../repositories/events'
 import UserRepository from '../../repositories/users'
 import SkillRepository from '../../repositories/skills'
 
+import EventFormRepository from '../../repositories/events/forms'
+
 import { provinceCityMap } from '../../constants/philippines'
 
 const eventRepository = new EventRepository(apiClient)
 const userRepository = new UserRepository(apiClient)
 const skillRepository = new SkillRepository(apiClient)
+
+function downloadFileAsLink (file, filename) {
+  const url = window.URL.createObjectURL(new Blob([file]))
+  const link = document.createElement('a')
+  link.href = url
+  link.setAttribute('download', filename)
+  document.body.appendChild(link)
+  link.click()
+}
 
 export default {
   name: 'EventDetailsActionsCard',
@@ -410,6 +497,7 @@ export default {
   },
   data () {
     return {
+      eventFormRepository: null,
       volunteerInvitation: {
         modal: false,
         message: '',
@@ -452,6 +540,9 @@ export default {
     ...mapGetters(['token']),
     philippineProvinces () {
       return Object.keys(provinceCityMap).sort()
+    },
+    eventId () {
+      return this.event._id
     }
   },
   watch: {
@@ -482,6 +573,10 @@ export default {
     eventRepository.setAuthorizationHeader(authHeader)
     userRepository.setAuthorizationHeader(authHeader)
     skillRepository.setAuthorizationHeader(authHeader)
+
+    this.eventFormRepository = new EventFormRepository(apiClient, {
+      bearerToken: this.token
+    })
   },
   methods: {
     async getRecommendedVolunteers (ctx) {
@@ -625,6 +720,36 @@ export default {
       cities.splice(index, 1)
 
       this.$refs.recommendedVolunteersTable.refresh()
+    },
+    async downloadInventoryListForm () {
+      const eventId = this.eventId
+
+      /** @type {EventFormRepository} */
+      const eventFormRepository = this.eventFormRepository
+
+      const file = await eventFormRepository.downloadInventoryListFile(eventId)
+
+      downloadFileAsLink(file, `inventory_list_${eventId}.pdf`)
+    },
+    async downloadExpenseBreakdownForm () {
+      const eventId = this.eventId
+
+      /** @type {EventFormRepository} */
+      const eventFormRepository = this.eventFormRepository
+
+      const file = await eventFormRepository.downloadExpenseBreakdownFile(eventId)
+
+      downloadFileAsLink(file, `expense_breakdown_${eventId}.pdf`)
+    },
+    async downloadVolunteerAttendanceForm () {
+      const eventId = this.eventId
+
+      /** @type {EventFormRepository} */
+      const eventFormRepository = this.eventFormRepository
+
+      const file = await eventFormRepository.downloadVolunteerAttendanceFile(eventId)
+
+      downloadFileAsLink(file, `volunteer_attendance_${eventId}.pdf`)
     }
   }
 }
