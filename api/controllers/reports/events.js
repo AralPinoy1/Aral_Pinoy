@@ -39,11 +39,17 @@ class ReportEventsController {
         $gte: startOfDay(start),
         $lte: endOfDay(end),
       }
-    }, ['_id', 'name', 'date'], {
+    }, ['_id', 'type', 'name', 'date'], {
       lean: true
     })
 
-    const eventIds = events.map((event) => event._id)
+    const eventIds = []
+    const eventMap = new Map()
+
+    for (const event of events) {
+      eventIds.push(event._id)
+      eventMap.set(event._id.toString(), event)
+    }
 
     const evaluations = await EventEvaluationModel.find({
       event: {
@@ -54,9 +60,19 @@ class ReportEventsController {
       }
     })
 
-    const universalQuestionMap = new Map()
+    const eventTypeUniversalQuestionMap = new Map()
 
     for (const evaluation of evaluations) {
+      const event = eventMap.get(evaluation.event.toString())
+
+      let universalQuestionMap = eventTypeUniversalQuestionMap.get(event.type)
+      
+      if (universalQuestionMap === undefined) {
+        universalQuestionMap = new Map()
+
+        eventTypeUniversalQuestionMap.set(event.type, universalQuestionMap)
+      }
+       
       for (const universalQuestion of evaluation.universalQuestionnaireAnswers) {
         const evaluationLabels = getEvaluationLabels(universalQuestion.question.type)
 
@@ -78,19 +94,28 @@ class ReportEventsController {
 
     const eventEvaluations = []
 
-    for (const [key, universalAnswerMap] of universalQuestionMap.entries()) {
-      const datasets = []
+    for (const [eventType, universalQuestionMap] of eventTypeUniversalQuestionMap.entries()) {
+      const data = []
 
-      for (const [answer, counter] of Object.entries(universalAnswerMap)) {
-        datasets.push({
-          label: answer,
-          data: [counter]
+      for (const [question, universalAnswerMap] of universalQuestionMap.entries()) {
+        const datasets = []
+  
+        for (const [answer, counter] of Object.entries(universalAnswerMap)) {
+          datasets.push({
+            label: answer,
+            data: [counter]
+          })
+        }
+        
+        data.push({
+          labels: [question],
+          datasets
         })
       }
-      
+
       eventEvaluations.push({
-        labels: [key],
-        datasets
+        eventType,
+        data
       })
     }
 

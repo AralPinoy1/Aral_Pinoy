@@ -106,33 +106,50 @@
                   </h1>
                 </b-col>
 
-                <b-col
-                  v-for="(eventEvaluation, index) in eventEvaluationCharts"
-                  :key="index"
-                  class="pb-5 d-flex w-100 justify-content-center"
-                  cols="12"
+                <template
+                  v-for="({ eventType, eventDataset }) in eventEvaluationCharts"
                 >
-                  <bar-chart
-                    :height="450"
-                    :width="600"
-                    :chart-data="{
-                      labels: eventEvaluation.labels,
-                      datasets: eventEvaluation.datasets
-                    }"
-                    :options="{
-                      scales: {
-                        yAxes: {
-                          ticks: {
-                            min: 0,
-                            beginAtZero: true,
-                            precision: 0
-                          }
-                        }
-                      },
-                      responsive: true,
-                    }"
-                  />
-                </b-col>
+                  <b-col
+                    :key="eventType"
+                    cols="12"
+                  >
+                    <h3 style="font-family:'Bebas Neue', cursive;">
+                      {{ eventType }}
+                    </h3>
+                  </b-col>
+
+                  <div :key="`${eventType}-dataset`">
+                    <b-col
+                      v-for="(eventEvaluation, index) in eventDataset"
+                      :key="`${eventType}-dataset-${index}`"
+                      class="pb-5 d-flex w-100 justify-content-center"
+                      cols="12"
+                    >
+                      <bar-chart
+                        :height="450"
+                        :width="600"
+                        :chart-data="{
+                          labels: eventEvaluation.labels,
+                          datasets: eventEvaluation.datasets
+                        }"
+                        :options="{
+                          scales: {
+                            yAxes: {
+                              ticks: {
+                                min: 0,
+                                beginAtZero: true,
+                                precision: 0
+                              }
+                            }
+                          },
+                          responsive: true,
+                        }"
+                      />
+                    </b-col>
+                  </div>
+
+                  <hr :key="`${eventType}-hr`">
+                </template>
               </b-row>
             </b-container>
           </b-card>
@@ -241,24 +258,33 @@ export default {
 
       const charts = []
 
-      for (const { labels, datasets } of eventEvaluations) {
-        const coloredDatasets = []
+      for (const { eventType, data } of eventEvaluations) {
+        const eventDataset = []
 
-        for (let i = 0; i < datasets.length; i++) {
-          const dataset = datasets[i]
+        for (const { labels, datasets } of data) {
+          const coloredDatasets = []
 
-          const backgroundColor = polarQuestionColors[dataset.label] || matrixQuestionColors[dataset.label]
+          for (let i = 0; i < datasets.length; i++) {
+            const dataset = datasets[i]
 
-          coloredDatasets.push({
-            label: dataset.label,
-            data: dataset.data,
-            backgroundColor: backgroundColor
+            const backgroundColor = polarQuestionColors[dataset.label] || matrixQuestionColors[dataset.label]
+
+            coloredDatasets.push({
+              label: dataset.label,
+              data: dataset.data,
+              backgroundColor: backgroundColor
+            })
+          }
+
+          eventDataset.push({
+            labels,
+            datasets: coloredDatasets
           })
         }
 
         charts.push({
-          labels,
-          datasets: coloredDatasets
+          eventType,
+          eventDataset
         })
       }
 
