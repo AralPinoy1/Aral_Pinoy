@@ -82,7 +82,10 @@
         </b-col>
       </b-row>
 
-      <b-row class="pb-3">
+      <b-row
+        v-if="!isGeneratingReport && hasGeneratedReport"
+        class="pb-3"
+      >
         <b-col cols="12">
           <b-card
             bg-variant="light"
@@ -96,8 +99,21 @@
               >
                 <b-col cols="12">
                   <h1 style="font-family:'Bebas Neue', cursive;">
-                    Demographics
+                    Volunteer Report from
+                    {{ new Date(report.startDate).toLocaleString('en-us', { dateStyle: 'medium' }) }}
+                    -
+                    {{ new Date(report.endDate).toLocaleString('en-us', { dateStyle: 'medium' }) }}
                   </h1>
+                </b-col>
+              </b-row>
+
+              <b-row
+                class="py-4"
+              >
+                <b-col cols="12">
+                  <h3 style="font-family:'Bebas Neue', cursive;">
+                    Demographics
+                  </h3>
                 </b-col>
               </b-row>
 
@@ -210,7 +226,10 @@ export default {
       startDate: today,
       endDate: today,
       isGeneratingReport: false,
+      hasGeneratedReport: false,
       report: {
+        startDate: today,
+        endDate: today,
         age: {
           labels: [],
           data: []
@@ -240,9 +259,13 @@ export default {
   },
   methods: {
     async getReportVolunteers () {
+      this.report.startDate = new Date(this.startDate)
+      this.report.endDate = new Date(this.endDate)
+
       const startDate = this.startDate.toJSON()
       const endDate = this.endDate.toJSON()
 
+      this.hasGeneratedReport = false
       this.isGeneratingReport = true
 
       try {
@@ -253,6 +276,8 @@ export default {
 
         this.report.age = results.age
         this.report.gender = results.gender
+
+        this.hasGeneratedReport = true
       } finally {
         this.isGeneratingReport = false
       }

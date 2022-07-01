@@ -83,7 +83,7 @@
       </b-row>
 
       <b-row
-        v-if="!isGeneratingReport"
+        v-if="!isGeneratingReport && hasGeneratedReport"
         class="pb-3"
       >
         <b-col
@@ -102,7 +102,10 @@
               >
                 <b-col cols="12">
                   <h1 style="font-family:'Bebas Neue', cursive;">
-                    Event Evaluations
+                    Event Evaluations Report from
+                    {{ new Date(report.startDate).toLocaleString('en-us', { dateStyle: 'medium' }) }}
+                    -
+                    {{ new Date(report.endDate).toLocaleString('en-us', { dateStyle: 'medium' }) }}
                   </h1>
                 </b-col>
 
@@ -168,7 +171,10 @@
               >
                 <b-col cols="12">
                   <h1 style="font-family:'Bebas Neue', cursive;">
-                    Post-Event Summaries
+                    Post-Event Summaries Report from
+                    {{ new Date(report.startDate).toLocaleString('en-us', { dateStyle: 'medium' }) }}
+                    -
+                    {{ new Date(report.endDate).toLocaleString('en-us', { dateStyle: 'medium' }) }}
                   </h1>
                 </b-col>
               </b-row>
@@ -241,7 +247,10 @@ export default {
       startDate: today,
       endDate: today,
       isGeneratingReport: false,
+      hasGeneratedReport: false,
       report: {
+        startDate: today,
+        endDate: today,
         events: [],
         eventEvaluations: []
       }
@@ -306,9 +315,13 @@ export default {
   },
   methods: {
     async getReportEvents () {
+      this.report.startDate = new Date(this.startDate)
+      this.report.endDate = new Date(this.endDate)
+
       const startDate = this.startDate.toJSON()
       const endDate = this.endDate.toJSON()
 
+      this.hasGeneratedReport = false
       this.isGeneratingReport = true
 
       try {
@@ -319,6 +332,8 @@ export default {
 
         this.report.events = results.events
         this.report.eventEvaluations = results.eventEvaluations
+
+        this.hasGeneratedReport = true
       } finally {
         this.isGeneratingReport = false
       }

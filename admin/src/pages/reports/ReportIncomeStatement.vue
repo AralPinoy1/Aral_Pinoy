@@ -99,10 +99,10 @@
               >
                 <b-col cols="12">
                   <h1 style="font-family:'Bebas Neue', cursive;">
-                    Report from
-                    {{ new Date(report.startDate).toLocaleString('en-us', { day: 'numeric', month: 'numeric', year: 'numeric' }) }}
+                    Income & Expenses Report from
+                    {{ new Date(report.startDate).toLocaleString('en-us', { dateStyle: 'medium' }) }}
                     -
-                    {{ new Date(report.endDate).toLocaleString('en-us', { day: 'numeric', month: 'numeric', year: 'numeric' }) }}
+                    {{ new Date(report.endDate).toLocaleString('en-us', { dateStyle: 'medium' }) }}
                   </h1>
                 </b-col>
               </b-row>
