@@ -30,7 +30,7 @@ class EventFormController {
    * @returns {Promise<PDFDocument>}
    */
   static async getVolunteerAttendanceFile(eventId) {
-    const event = await EventModel.findById(eventId, ['_id', 'goals'])
+    const event = await EventModel.findById(eventId, ['_id', 'name', 'date', 'goals'])
     
     if (event === null) {
       throw new NotFoundError('event')
@@ -77,6 +77,9 @@ class EventFormController {
           fit: [100, 100],
           alignment: 'center'
         },
+        { text: 'Volunteer Attendance List', margin: 5, fontSize: 20, alignment: 'center' },
+        { text: event.name, margin: 5, fontSize: 14, alignment: 'center' },
+        { text: new Date(event.date.start).toLocaleString('en-us', { dateStyle: 'medium', timeStyle: 'short' }), margin: 5, fontSize: 14, alignment: 'center' },
         { text: '', margin: 10 },
         {
           layout: 'lightHorizontalLines',
@@ -99,7 +102,7 @@ class EventFormController {
    * @returns {Promise<PDFDocument>}
    */
   static async getInventoryListFile(eventId) {
-    const event = await EventModel.findById(eventId,['_id', 'ikds'])
+    const event = await EventModel.findById(eventId,['_id', 'name', 'date', 'ikds'])
     
     if (event === null) {
       throw new NotFoundError('event')
@@ -111,7 +114,7 @@ class EventFormController {
 
     const headerRow = ['Item Name', 'Quantity Brought', 'Quantity Used']
     const rows = []
-    let pageRowLimit = 31
+    let pageRowLimit = 27
     const extraPageRowLimit = 36
 
     for (const { item, quantity } of event.ikds) {
@@ -173,6 +176,9 @@ class EventFormController {
           fit: [100, 100],
           alignment: 'center'
         },
+        { text: 'Inventory List', margin: 5, fontSize: 20, alignment: 'center' },
+        { text: event.name, margin: 5, fontSize: 14, alignment: 'center' },
+        { text: new Date(event.date.start).toLocaleString('en-us', { dateStyle: 'medium', timeStyle: 'short' }), margin: 5, fontSize: 14, alignment: 'center' },
         { text: '', margin: 10 },
         {
           layout: 'lightHorizontalLines',
@@ -195,7 +201,7 @@ class EventFormController {
    * @returns {Promise<PDFDocument>}
    */
   static async getExpenseBreakdownFile(eventId) {
-    const event = await EventModel.findById(eventId,['_id', 'budget'])
+    const event = await EventModel.findById(eventId,['_id', 'name', 'date', 'budget'])
     
     if (event === null) {
       throw new NotFoundError('event')
@@ -203,7 +209,7 @@ class EventFormController {
 
     const headerRow = ['Expense', 'Proposed / Actual Cost (₱)', 'Remarks']
     const rows = []
-    let pageRowLimit = 31
+    let pageRowLimit = 27
     let isEmptyBudget = true
     const extraPageRowLimit = 36
 
@@ -271,6 +277,9 @@ class EventFormController {
           fit: [100, 100],
           alignment: 'center'
         },
+        { text: 'Expense Breakdown', margin: 5, fontSize: 20, alignment: 'center' },
+        { text: event.name, margin: 5, fontSize: 14, alignment: 'center' },
+        { text: new Date(event.date.start).toLocaleString('en-us', { dateStyle: 'medium', timeStyle: 'short' }), margin: 5, fontSize: 14, alignment: 'center' },
         { text: '', margin: 10 },
         {
           layout: 'lightHorizontalLines',
