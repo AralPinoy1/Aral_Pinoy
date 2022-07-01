@@ -58,8 +58,11 @@
                 </b-col>
               </b-row>
 
-              <b-row class="py-2">
-                <b-col cols="12">
+              <b-row class="py-2 justify-content-center">
+                <b-col
+                  cols="12"
+                  md="3"
+                >
                   <b-button
                     pill
                     variant="danger"
@@ -72,7 +75,28 @@
                     />
 
                     <template v-else>
-                      Generate Report
+                      Generate Chart Report
+                    </template>
+                  </b-button>
+                </b-col>
+
+                <b-col
+                  cols="12"
+                  md="3"
+                >
+                  <b-button
+                    pill
+                    variant="success"
+                    :disabled="isExportingReport"
+                    @click="downloadEventsReportExport"
+                  >
+                    <b-spinner
+                      v-if="isExportingReport"
+                      style="width: 1rem; height: 1rem;"
+                    />
+
+                    <template v-else>
+                      Export Report
                     </template>
                   </b-button>
                 </b-col>
@@ -209,10 +233,13 @@
 <script>
 import { mapGetters } from 'vuex'
 
-import ReportRepository from '../../repositories/reports'
-import { apiClient } from '../../axios'
-
 import BarChart from '../../components/charts/Bar'
+
+import { apiClient } from '../../axios'
+import ReportRepository from '../../repositories/reports'
+import ReportExportRepository from '../../repositories/reports/exports'
+
+import downloadFileAsLink from '../../utils/download-file'
 
 const reportRepository = new ReportRepository(apiClient)
 
@@ -244,10 +271,12 @@ export default {
   },
   data () {
     return {
+      reportExportRepository: null,
       startDate: today,
       endDate: today,
       isGeneratingReport: false,
       hasGeneratedReport: false,
+      isExportingReport: false,
       report: {
         startDate: today,
         endDate: today,
@@ -312,6 +341,10 @@ export default {
   },
   created () {
     reportRepository.setAuthorizationHeader(`Bearer ${this.token}`)
+
+    this.reportExportRepository = new ReportExportRepository(apiClient, {
+      bearerToken: this.token
+    })
   },
   methods: {
     async getReportEvents () {
@@ -346,6 +379,26 @@ export default {
       }
 
       return date
+    },
+    async downloadEventsReportExport () {
+      const startDate = this.startDate.toJSON()
+      const endDate = this.endDate.toJSON()
+
+      this.isExportingReport = true
+
+      /** @type {ReportExportRepository} */
+      const reportExportRepository = this.reportExportRepository
+
+      try {
+        const file = await reportExportRepository.exportEvents({
+          start: startDate,
+          end: endDate
+        })
+
+        downloadFileAsLink(file, `events-report-${Date.now()}.zip`)
+      } finally {
+        this.isExportingReport = false
+      }
     }
   }
 }

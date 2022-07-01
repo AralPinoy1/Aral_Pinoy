@@ -474,18 +474,11 @@ import EventFormRepository from '../../repositories/events/forms'
 
 import { provinceCityMap } from '../../constants/philippines'
 
+import downloadFileAsLink from '../../utils/download-file'
+
 const eventRepository = new EventRepository(apiClient)
 const userRepository = new UserRepository(apiClient)
 const skillRepository = new SkillRepository(apiClient)
-
-function downloadFileAsLink (file, filename) {
-  const url = window.URL.createObjectURL(new Blob([file]))
-  const link = document.createElement('a')
-  link.href = url
-  link.setAttribute('download', filename)
-  document.body.appendChild(link)
-  link.click()
-}
 
 export default {
   name: 'EventDetailsActionsCard',

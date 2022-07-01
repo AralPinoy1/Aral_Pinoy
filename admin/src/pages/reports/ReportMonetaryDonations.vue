@@ -58,8 +58,11 @@
                 </b-col>
               </b-row>
 
-              <b-row class="py-2">
-                <b-col cols="12">
+              <b-row class="py-2 justify-content-center">
+                <b-col
+                  cols="12"
+                  md="3"
+                >
                   <b-button
                     pill
                     variant="danger"
@@ -72,7 +75,28 @@
                     />
 
                     <template v-else>
-                      Generate Report
+                      Generate Chart Report
+                    </template>
+                  </b-button>
+                </b-col>
+
+                <b-col
+                  cols="12"
+                  md="3"
+                >
+                  <b-button
+                    pill
+                    variant="success"
+                    :disabled="isExportingReport"
+                    @click="downloadMonetaryDonationsReportExport"
+                  >
+                    <b-spinner
+                      v-if="isExportingReport"
+                      style="width: 1rem; height: 1rem;"
+                    />
+
+                    <template v-else>
+                      Export Report
                     </template>
                   </b-button>
                 </b-col>
@@ -388,11 +412,13 @@
 import { mapGetters } from 'vuex'
 import * as randomColor from 'randomcolor'
 
-import ReportRepository from '../../repositories/reports'
-import { apiClient } from '../../axios'
-
 import BarChart from '../../components/charts/Bar'
-// import TrendChart from '../../components/charts/Trend'
+
+import { apiClient } from '../../axios'
+import ReportRepository from '../../repositories/reports'
+import ReportExportRepository from '../../repositories/reports/exports'
+
+import downloadFileAsLink from '../../utils/download-file'
 
 const reportRepository = new ReportRepository(apiClient)
 
@@ -406,18 +432,12 @@ export default {
   },
   data () {
     return {
+      reportExportRepository: null,
       startDate: today,
       endDate: today,
       isGeneratingReport: false,
+      isExportingReport: false,
       report: {
-        // incomeStatement: {
-        //   labels: ['Mar 1', 'Mar 2', 'Mar 3'],
-        //   dataset: [{
-        //     data: [7008, 5000, 9000]
-        //   }, {
-        //     data: [1234, 3333, 7601]
-        //   }]
-        // },
         isGenerated: false,
         startDate: today,
         endDate: today,
@@ -465,6 +485,10 @@ export default {
     const authHeader = `Bearer ${this.token}`
 
     reportRepository.setAuthorizationHeader(authHeader)
+
+    this.reportExportRepository = new ReportExportRepository(apiClient, {
+      bearerToken: this.token
+    })
   },
   methods: {
     async getReportMonetaryDonations () {
@@ -531,6 +555,26 @@ export default {
         this.report.isGenerated = true
       } finally {
         this.isGeneratingReport = false
+      }
+    },
+    async downloadMonetaryDonationsReportExport () {
+      const startDate = this.startDate.toJSON()
+      const endDate = this.endDate.toJSON()
+
+      this.isExportingReport = true
+
+      /** @type {ReportExportRepository} */
+      const reportExportRepository = this.reportExportRepository
+
+      try {
+        const file = await reportExportRepository.exportMonetaryDonations({
+          start: startDate,
+          end: endDate
+        })
+
+        downloadFileAsLink(file, `monetary-donations-report-${Date.now()}.zip`)
+      } finally {
+        this.isExportingReport = false
       }
     }
   }

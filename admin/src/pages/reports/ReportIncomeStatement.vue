@@ -58,8 +58,11 @@
                 </b-col>
               </b-row>
 
-              <b-row class="py-2">
-                <b-col cols="12">
+              <b-row class="py-2 justify-content-center">
+                <b-col
+                  cols="12"
+                  md="3"
+                >
                   <b-button
                     pill
                     variant="danger"
@@ -72,7 +75,28 @@
                     />
 
                     <template v-else>
-                      Generate Report
+                      Generate Chart Report
+                    </template>
+                  </b-button>
+                </b-col>
+
+                <b-col
+                  cols="12"
+                  md="3"
+                >
+                  <b-button
+                    pill
+                    variant="success"
+                    :disabled="isExportingReport"
+                    @click="downloadIncomeStatementReportExport"
+                  >
+                    <b-spinner
+                      v-if="isExportingReport"
+                      style="width: 1rem; height: 1rem;"
+                    />
+
+                    <template v-else>
+                      Export Report
                     </template>
                   </b-button>
                 </b-col>
@@ -213,11 +237,14 @@
 <script>
 import { mapGetters } from 'vuex'
 
-import ReportRepository from '../../repositories/reports'
-import { apiClient } from '../../axios'
-
 import TrendChart from '../../components/charts/Trend'
 import BarChart from '../../components/charts/Bar'
+
+import { apiClient } from '../../axios'
+import ReportRepository from '../../repositories/reports'
+import ReportExportRepository from '../../repositories/reports/exports'
+
+import downloadFileAsLink from '../../utils/download-file'
 
 const reportRepository = new ReportRepository(apiClient)
 
@@ -231,9 +258,11 @@ export default {
   },
   data () {
     return {
+      reportExportRepository: null,
       startDate: today,
       endDate: today,
       isGeneratingReport: false,
+      isExportingReport: false,
       report: {
         isGenerated: false,
         startDate: today,
@@ -266,6 +295,10 @@ export default {
     const authHeader = `Bearer ${this.token}`
 
     reportRepository.setAuthorizationHeader(authHeader)
+
+    this.reportExportRepository = new ReportExportRepository(apiClient, {
+      bearerToken: this.token
+    })
   },
   methods: {
     async getIncomeStatementReport () {
@@ -290,6 +323,26 @@ export default {
         this.report.isGenerated = true
       } finally {
         this.isGeneratingReport = false
+      }
+    },
+    async downloadIncomeStatementReportExport () {
+      const startDate = this.startDate.toJSON()
+      const endDate = this.endDate.toJSON()
+
+      this.isExportingReport = true
+
+      /** @type {ReportExportRepository} */
+      const reportExportRepository = this.reportExportRepository
+
+      try {
+        const file = await reportExportRepository.exportIncomeStatement({
+          start: startDate,
+          end: endDate
+        })
+
+        downloadFileAsLink(file, `income-and-expenses-report-${Date.now()}.zip`)
+      } finally {
+        this.isExportingReport = false
       }
     }
   }

@@ -22,7 +22,6 @@ const skillsRouter = require('./routes/skills')
 const usersRouter = require('./routes/users')
 const monetaryDonationsRouter = require('./routes/monetary-donations')
 const cronRouter = require('./routes/cron')
-const reportsRouter = require('./routes/reports')
 
 const eventsRouter = require('./routes/events')
 const eventDonationsRouter = require('./routes/events/donations')
@@ -48,6 +47,9 @@ const ledgerTransactionsRouter = require('./routes/ledger/transactions')
 const notificationsRouter = require('./routes/notifications')
 
 const formTemplatesStaticRouter = require('./routes/form-templates/static')
+
+const reportsRouter = require('./routes/reports')
+const reportExportsRouter = require('./routes/reports/exports')
 
 const seedSdgs = require('./db/seeders/sdg')
 const seedEventQuestions = require('./db/seeders/event-questions')
@@ -102,6 +104,10 @@ const publicRoutes = [
   {
     url: /^\/form-templates\/static\/*/,
     methods: ['GET']
+  },
+  {
+    url: /^\/report-exports\/*/,
+    methods: ['GET']
   }
 ]
 
@@ -130,7 +136,6 @@ app.use('/google-oauth', googleOAuthRouter)
 app.use('/sdgs', sdgsRouter)
 app.use('/monetary-donations', monetaryDonationsRouter)
 app.use('/cron', cronRouter)
-app.use('/reports', reportsRouter)
 
 app.use('/events', eventsRouter)
 app.use('/event-donations', eventDonationsRouter)
@@ -156,6 +161,9 @@ app.use('/ledger-transactions', ledgerTransactionsRouter)
 app.use('/notifications', notificationsRouter)
 
 app.use('/form-templates/static', formTemplatesStaticRouter)
+
+app.use('/reports', reportsRouter)
+app.use('/report-exports', reportExportsRouter)
 
 app.use(function (req, res, next) {
   res.status(404).json({

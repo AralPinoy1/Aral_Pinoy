@@ -1,11 +1,20 @@
 'use strict'
 
 const { startOfDay, endOfDay } = require('date-fns')
+const Zip = require('adm-zip')
+const { stringify } = require('csv-stringify/sync')
 
 const MonetaryDonationModel = require('../../models/monetary-donations')
 const EventDonationModel = require('../../models/events/donations')
 
+const {
+  ConflictError
+} = require('../../errors')
+
 const ANONYMOUS_DONOR = 'Anonymous'
+
+const CSV_HEADERS_BY_INDIVIDUAL = ['Name', 'Value']
+const CSV_HEADERS_BY_COMPANY = ['Company Name', 'Value']
 
 class ReportMonetaryDonationController {
   /**
@@ -259,6 +268,183 @@ class ReportMonetaryDonationController {
     }
 
     return contactDetails.companyName
+  }
+
+  /**
+   * 
+   * @param {Object} dateRange Date range object
+   * @param {Date} dateRange.start Start date
+   * @param {Date} dateRange.end End date
+   * @returns 
+   */
+  static async export(dateRange) {
+    const {
+      start,
+      end
+    } = dateRange
+
+    const totalDonationAmountByPersonEntries = []
+    const totalDonationAmountByCompanyEntries = []
+
+    const eventDonationAmountByPersonEntries = []
+    const eventDonationAmountByCompanyEntries = []
+
+    const monetaryDonationAmountByPersonEntries = []
+    const monetaryDonationAmountByCompanyEntries = []
+    
+    const monetaryDonations = await MonetaryDonationModel.find({
+      createdAt: {
+        $gte: startOfDay(start),
+        $lte: endOfDay(end)
+      }
+    }, ['amount', 'metadata'])
+
+    const eventDonations = await EventDonationModel.find({
+      createdAt: {
+        $gte: startOfDay(start),
+        $lte: endOfDay(end)
+      }
+    }, ['amount', 'metadata'])
+
+    if (monetaryDonations.length === 0 && eventDonations.length === 0) {
+      throw new ConflictError('no-results')
+    }
+
+    const totalDonationAmountByPersonMap = new Map()
+    const totalDonationAmountByCompanyMap = new Map()
+    
+    const {
+      donorAmountByPersonMap: monetaryDonationAmountByPersonMap,
+      donorAmountByCompanyMap: monetaryDonationAmountByCompanyMap
+    } = ReportMonetaryDonationController.resolveMonetaryDonationsDonorAmounts(monetaryDonations)
+
+    for (const [donor, amount] of monetaryDonationAmountByPersonMap.entries()) {
+      monetaryDonationAmountByPersonEntries.push([
+        donor,
+        amount
+      ])
+
+      let totalAmount = totalDonationAmountByPersonMap.get(donor)
+
+      if (totalAmount === undefined) {
+        totalAmount = amount
+      } else {
+        totalAmount += amount
+      }
+
+      totalDonationAmountByPersonMap.set(donor, totalAmount)
+    }
+
+    for (const [donor, amount] of monetaryDonationAmountByCompanyMap.entries()) {
+      monetaryDonationAmountByCompanyEntries.push([
+        donor,
+        amount
+      ])
+
+      let totalAmount = totalDonationAmountByCompanyMap.get(donor)
+
+      if (totalAmount === undefined) {
+        totalAmount = amount
+      } else {
+        totalAmount += amount
+      }
+
+      totalDonationAmountByCompanyMap.set(donor, totalAmount)
+    }
+
+    const {
+      donorAmountByPersonMap: eventDonationAmountByPersonMap,
+      donorAmountByCompanyMap: eventDonationAmountByCompanyMap
+    } = ReportMonetaryDonationController.resolveEventDonationsDonorAmounts(eventDonations)
+
+    for (const [donor, amount] of eventDonationAmountByPersonMap.entries()) {
+      eventDonationAmountByPersonEntries.push([
+        donor,
+        amount
+      ])
+
+      let totalAmount = totalDonationAmountByPersonMap.get(donor)
+
+      if (totalAmount === undefined) {
+        totalAmount = amount
+      } else {
+        totalAmount += amount
+      }
+      
+      totalDonationAmountByPersonMap.set(donor, totalAmount)
+    }
+
+    for (const [donor, amount] of eventDonationAmountByCompanyMap.entries()) {
+      eventDonationAmountByCompanyEntries.push([
+        donor,
+        amount
+      ])
+
+      let totalAmount = totalDonationAmountByCompanyMap.get(donor)
+
+      if (totalAmount === undefined) {
+        totalAmount = amount
+      } else {
+        totalAmount += amount
+      }
+
+      totalDonationAmountByCompanyMap.set(donor, totalAmount)
+    }
+
+    for (const [donor, amount] of totalDonationAmountByPersonMap.entries()) {
+      totalDonationAmountByPersonEntries.push([
+        donor,
+        amount
+      ])
+    }
+
+    for (const [donor, amount] of totalDonationAmountByCompanyMap.entries()) {
+      totalDonationAmountByCompanyEntries.push([
+        donor,
+        amount
+      ])
+    }
+
+    const zip = new Zip()
+
+    const csvStringForTotalDonationAmountByPerson = stringify([
+      CSV_HEADERS_BY_INDIVIDUAL,
+      ...totalDonationAmountByPersonEntries
+    ])
+
+    const csvStringForTotalDonationAmountByCompany = stringify([
+      CSV_HEADERS_BY_COMPANY,
+      ...totalDonationAmountByCompanyEntries
+    ])
+
+    const csvStringForEventDonationAmountByPerson = stringify([
+      CSV_HEADERS_BY_INDIVIDUAL,
+      ...eventDonationAmountByPersonEntries
+    ])
+
+    const csvStringForEventDonationAmountByCompany = stringify([
+      CSV_HEADERS_BY_COMPANY,
+      ...eventDonationAmountByCompanyEntries
+    ])
+
+    const csvStringForMonetaryDonationAmountByPerson = stringify([
+      CSV_HEADERS_BY_INDIVIDUAL,
+      ...monetaryDonationAmountByPersonEntries
+    ])
+
+    const csvStringForMonetaryDonationAmountByCompany = stringify([
+      CSV_HEADERS_BY_COMPANY,
+      ...monetaryDonationAmountByCompanyEntries
+    ])
+
+    zip.addFile(`total_donation_by_person_report_from_${start.toJSON()}_to_${end.toJSON()}.csv`, Buffer.from(csvStringForTotalDonationAmountByPerson, 'utf8'))
+    zip.addFile(`total_donation_by_company_report_from_${start.toJSON()}_to_${end.toJSON()}.csv`, Buffer.from(csvStringForTotalDonationAmountByCompany, 'utf8'))
+    zip.addFile(`event_donation_by_person_report_from_${start.toJSON()}_to_${end.toJSON()}.csv`, Buffer.from(csvStringForEventDonationAmountByPerson, 'utf8'))
+    zip.addFile(`event_donation_by_company_report_from_${start.toJSON()}_to_${end.toJSON()}.csv`, Buffer.from(csvStringForEventDonationAmountByCompany, 'utf8'))
+    zip.addFile(`aral_pinoy_donation_by_person_report_from_${start.toJSON()}_to_${end.toJSON()}.csv`, Buffer.from(csvStringForMonetaryDonationAmountByPerson, 'utf8'))
+    zip.addFile(`aral_pinoy_donation_by_company_report_from_${start.toJSON()}_to_${end.toJSON()}.csv`, Buffer.from(csvStringForMonetaryDonationAmountByCompany, 'utf8'))
+
+    return zip
   }
 }
 
