@@ -99,6 +99,7 @@
                 v-model="form.date"
                 label="Transaction Date"
                 value-as-date
+                :max="new Date()"
               />
             </b-col>
 
@@ -115,6 +116,7 @@
                 v-model="form.time"
                 locale="en"
                 required
+                now-button
               />
             </b-col>
           </b-row>
@@ -224,6 +226,8 @@ import formattersMixin from '../../mixins/formatters'
 
 const eventRepository = new EventRepository(apiClient)
 
+const today = new Date()
+
 export default {
   name: 'CreateLedgerTransactionModal',
   mixins: [
@@ -245,7 +249,7 @@ export default {
         type: '',
         amount: 1,
         date: new Date(),
-        time: '00:00:00',
+        time: `${today.getHours()}:${today.getMinutes()}:${today.getSeconds()}`,
         metadata: {
           event: null
         },
